@@ -1,10 +1,11 @@
 import org.scalatest.funspec.AnyFunSpec
 
 import com.github.fmndantas.Six
+import com.github.fmndantas.six.State
 
 class sutSpec extends AnyFunSpec {
   object sut extends Six
-  import sut.{State, SimpleRNG, RNG}
+  import sut.{SimpleRNG, RNG}
 
   case class SomeState(x: Int)
 
@@ -85,7 +86,6 @@ class sutSpec extends AnyFunSpec {
       c <- sut.getNextInt
     } yield (a, b, c)
     val ((a, b, c), _) = s.run(simpleRNG)
-    // println((a, b, c))
     assert(a != b)
     assert(b != c)
     assert(c != a)
