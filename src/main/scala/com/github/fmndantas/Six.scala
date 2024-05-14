@@ -52,12 +52,11 @@ trait Six {
     else nonNegativeLessThan(n)
   }
 
-  /*
-   * Encapsula transições de estado de
-   * maneira funcional; faz isso retornando
-   * um novo estado atualizado que resultou
-   * da atualização de um estado passado
-   */
+  // NOTE:
+  // Encapsula transições de estado de
+  // maneira funcional; faz isso retornando
+  // um novo estado atualizado que resultou
+  // da atualização de um estado passado
   case class State[S, +A](run: S => (A, S)):
     def map[B](f: A => B): State[S, B] = flatMap(f andThen State.unit)
 
