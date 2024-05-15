@@ -1,74 +1,33 @@
 import org.scalatest.funspec.AnyFunSpec
-import com.github.fmndantas.CandyDispenser
+import com.github.fmndantas.six.candyDispenser.CandyDispenser
+import com.github.fmndantas.six.candyDispenser.Machine
+import com.github.fmndantas.six.candyDispenser.Answer
+import com.github.fmndantas.six.State
 
 class CandyDispenserSpec extends AnyFunSpec {
   object sut extends CandyDispenser
-  import sut.{Machine, Answer}
+  import sut.{Coin, Turn}
 
-  // FIX: ?
-  // it("Creates answer from machine") {
-  //   val machine = Machine(false, 123, 321)
-  //   val result = machine.createAnswer
-  //   assertResult(Answer(321, 123))(result)
-  // }
-
-  // FIX: replace by last rule
-  // it("Won't unlock the machine if there is not any candy left") {
-  //   val initial = Machine(locked = true, candies = 0, coins = 10)
-  //   val (result, machine) = sut.insertCoin(1).run(initial)
-  //   assertResult(Machine(true, 0, 11), "Machine")(machine)
-  // }
-
-  describe("Inserting a coin") {
-    describe("Into a locked machine") {
-      it("Will unlock it if there is some candy left") {
-        val initial = Machine(locked = true, candies = 10, coins = 10)
-        val (result, machine) = sut.insertCoin.run(initial)
-        assertResult(Machine(false, 10, 11), "Machine")(machine)
+  describe(
+    "Accepts sequence of inputs and return final state based on some initial state"
+  ) {
+    Seq(
+      (2, 1, Seq(), Answer(coins = 2, candies = 1)),
+      (0, 1, Seq(Coin, Turn), Answer(coins = 1, candies = 0)),
+      (2, 0, Seq(Coin, Turn), Answer(coins = 2, candies = 0)),
+      (2, 1, Seq(Coin, Turn), Answer(coins = 3, candies = 0)),
+      (2, 1, Seq(Coin, Coin), Answer(coins = 3, candies = 1)),
+      (10, 5, Seq.fill(4)(Seq(Coin, Turn)).flatten, Answer(coins = 14, candies = 1)),
+    ).zipWithIndex.foreach { case (testData, kase) =>
+      it(s"Case #${kase + 1}") {
+        val (initialCoins, initialCandies, inputs, expectedAnswer) = testData
+        val transitions = sut.simulate(inputs)
+        // NOTE: machine is initially locked
+        val (answer, _) =
+          transitions.run(Machine(true, initialCandies, initialCoins))
+        assertResult(expectedAnswer.coins, "coins")(answer.coins)
+        assertResult(expectedAnswer.candies, "candies")(answer.candies)
       }
-    }
-    describe("Into a unlocked machine does nothing") {
-      it("On a machine with candies") {
-        val initial = Machine(locked = false, candies = 10, coins = 10)
-        val (_, machine) = sut.insertCoin.run(initial)
-        assertResult(initial, "Machine with candies")(machine)
-      }
-
-      it("On a machine without candies") {
-        val initial = Machine(locked = false, candies = 0, coins = 10)
-        val (_, machine) = sut.insertCoin.run(initial)
-        assertResult(initial, "Machine without candies")(machine)
-      }
-    }
-  }
-
-  describe("Turning the knob") {
-    it("Will do nothing on a locked machine") {
-      val initial = Machine(locked = true, candies = 10, coins = 10)
-      val (result, machine) = sut.turnKnob.run(initial)
-      assertResult(initial)(machine)
-    }
-
-    it(
-      "On a unlocked machine will cause machine to dispense candy and become locked"
-    ) {
-      val initial = Machine(locked = false, candies = 10, coins = 10)
-      val (result, machine) = sut.turnKnob.run(initial)
-      assertResult(Machine(true, 9, 10))(machine)
-    }
-  }
-
-  describe("A machine that's out of candies ignores") {
-    it("Any coin insertion") {
-      val initial = Machine(locked = true, candies = 0, coins = 10)
-      val (_, machine) = sut.insertCoin.run(initial)
-      assertResult(initial)(machine)
-    }
-
-    it("Any knob turning") {
-      val initial = Machine(locked = false, candies = 0, coins = 10)
-      val (_, machine) = sut.turnKnob.run(initial)
-      assertResult(initial)(machine)
     }
   }
 }
