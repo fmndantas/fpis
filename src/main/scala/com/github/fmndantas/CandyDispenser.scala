@@ -7,24 +7,24 @@ trait CandyDispenser {
   case object Coin extends Input
   case object Turn extends Input
 
-  case class Machine(locked: Boolean, candies: Int, coins: Int):
-    def noCandyLeft: Boolean = candies == 0
-    def createAnswer: Answer = Answer(coins, candies)
-    def answerAndMachine: (Answer, Machine) = (createAnswer, this)
-
   case class Answer(coins: Int, candies: Int)
 
-  def insertCoin(amount: Int): State[Machine, Answer] = State { machine =>
-    machine
-      .copy(locked = machine.noCandyLeft, coins = machine.coins + 1)
-      .answerAndMachine
+  case class Machine(locked: Boolean, candies: Int, coins: Int):
+    def noCandyLeft: Boolean = candies == 0
+    def unlocked = !locked
+    def lock = this.copy(locked = true)
+    def insertCoin = this.copy(coins = this.coins + 1)
+    def unlock = this.copy(locked = false)
+    def dispenseCandy = this.copy(candies = this.candies - 1)
+    def answerAndMachine: (Answer, Machine) = (Answer(coins, candies), this)
+
+  def insertCoin: State[Machine, Answer] = State { machine =>
+    if (machine.unlocked || machine.noCandyLeft) machine.answerAndMachine
+    else machine.unlock.insertCoin.answerAndMachine
   }
 
   def turnKnob: State[Machine, Answer] = State { machine =>
-    if (machine.locked) machine.answerAndMachine
-    else
-      machine
-        .copy(locked = true, candies = machine.candies - 1)
-        .answerAndMachine
+    if (machine.locked || machine.noCandyLeft) machine.answerAndMachine
+    else machine.dispenseCandy.lock.answerAndMachine
   }
 }
