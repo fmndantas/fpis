@@ -1,29 +1,28 @@
 import com.github.fmndantas.six.RNG
 import com.github.fmndantas.six.SimpleRNG
 import com.github.fmndantas.six.State
-import org.scalatest.funspec.AnyFunSpec
 
-class StateSpec extends AnyFunSpec {
+class StateSpec extends munit.FunSuite {
   case class SomeState(x: Int)
 
-  it("Lifts some value") {
+  test("Lifts some value") {
     val initialState = SomeState(-1)
     val s1 = State.unit[Int, SomeState](10)
     val (a, b) = s1.run(initialState)
-    assertResult(10)(a)
-    assertResult(b)(initialState)
+    assertEquals(a, 10)
+    assertEquals(b, initialState)
   }
 
-  it("Maps one state into another") {
+  test("Maps one state into another") {
     val initialState = SomeState(0)
     val s1 = State[SomeState, Int](s => (0, s.copy(x = s.x + 1)))
     val s2 = s1.map(_ + 10)
     val (r, s3) = s2.run(initialState)
-    assertResult(10)(r)
-    assertResult(SomeState(1))(s3)
+    assertEquals(r, 10)
+    assertEquals(s3, SomeState(1))
   }
 
-  it("Flatmaps one state into another") {
+  test("Flatmaps one state into another") {
     val initialState = SomeState(0)
     val s1 = State[SomeState, Int](s => (0, s.copy(x = s.x + 1)))
     val s2 = s1.flatMap(a =>
@@ -32,15 +31,15 @@ class StateSpec extends AnyFunSpec {
       }
     )
     val (r, s3) = s2.run(initialState)
-    assertResult(10)(r)
-    assertResult(SomeState(2))(s3)
+    assertEquals(r, 10)
+    assertEquals(s3, SomeState(2))
   }
 
-  it("Transform list of states into one state that generate list as result") {
+  test("Transform list of states into one state that generate list as result") {
     val s = State.sequence[Int, RNG](
       List(State.unit(42), State.unit(43), State.unit(44))
     )
     val (r, _) = s.run(SimpleRNG(42))
-    assertResult(List(42, 43, 44))(r)
+    assertEquals(r, List(42, 43, 44))
   }
 }
