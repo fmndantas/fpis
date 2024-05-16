@@ -1,6 +1,6 @@
 import com.github.fmndantas.two.Two
 
-class TwoSpec extends munit.FunSuite with MultipleTests {
+class TwoSpec extends munit.FunSuite with MultipleCases {
   object sut extends Two
 
   test("Generates fibonacci numbers") {
@@ -10,8 +10,7 @@ class TwoSpec extends munit.FunSuite with MultipleTests {
     )
   }
 
-  cases(
-    "Determines if integer array is sorted",
+  cases("Determines if integer array is sorted")(
     (Array.empty[Int], (a: Int, b: Int) => a <= b, true),
     (Array(999), (a: Int, b: Int) => a <= b, true),
     (Array(999, 1999), (a: Int, b: Int) => a > b, false),
@@ -20,11 +19,10 @@ class TwoSpec extends munit.FunSuite with MultipleTests {
     assertEquals(sut.isSorted[Int](as, f), expectedIsSorted)
   }
 
-  cases(
-    "Determines if string array is sorted",
+  cases("Determines if string array is sorted")(
     (Array[String](), (a: String, b: String) => a.size <= b.size, true),
     (Array("f"), (a: String, b: String) => a.size <= b.size, true),
-    (Array("f", "ff", "fff"), (a: String, b: String) => a.size <= b.size, true),
+    (Array("f", "ff", "fff"), (a: String, b: String) => a.size <= b.size, true)
   ) { case (as, f, expectedIsSorted) =>
     assertEquals(sut.isSorted[String](as, f), expectedIsSorted)
   }
