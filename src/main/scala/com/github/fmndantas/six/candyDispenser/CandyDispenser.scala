@@ -1,8 +1,6 @@
 package com.github.fmndantas.six.candyDispenser
 
 import com.github.fmndantas.six.State
-import com.github.fmndantas.six.candyDispenser.Answer
-import com.github.fmndantas.six.candyDispenser.Machine
 
 trait CandyDispenser {
   sealed trait Input

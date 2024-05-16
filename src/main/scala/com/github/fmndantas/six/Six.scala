@@ -1,5 +1,4 @@
 package com.github.fmndantas.six
-import com.github.fmndantas.six.State
 
 trait RNG {
   def nextInt: (Int, RNG)

@@ -2,7 +2,6 @@ import org.scalatest.funspec.AnyFunSpec
 import com.github.fmndantas.six.candyDispenser.CandyDispenser
 import com.github.fmndantas.six.candyDispenser.Machine
 import com.github.fmndantas.six.candyDispenser.Answer
-import com.github.fmndantas.six.State
 
 class CandyDispenserSpec extends AnyFunSpec {
   object sut extends CandyDispenser
