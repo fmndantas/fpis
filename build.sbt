@@ -7,5 +7,17 @@ lazy val root = project
     version := "0.1.0-SNAPSHOT",
     scalaVersion := scala3Version,
     libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.18" % Test,
-    libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.18.0" % Test
+    libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.18.0" % Test,
+    libraryDependencies += "org.scalameta" %% "munit" % "0.7.29" % Test
   )
+
+scalacOptions ++= Seq(
+  "-encoding",
+  "utf8",
+  "-Wunused:imports",
+  "-Wunused:privates",
+  "-Wunused:params",
+  "-Wunused:locals",
+  "-Xlint:unused",
+  "-explaintypes"
+)
