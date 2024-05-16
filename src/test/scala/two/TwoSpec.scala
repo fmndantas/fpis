@@ -26,4 +26,22 @@ class TwoSpec extends munit.FunSuite with MultipleCases {
   ) { case (as, f, expectedIsSorted) =>
     assertEquals(sut.isSorted[String](as, f), expectedIsSorted)
   }
+
+  test("Curries a function of two arguments") {
+    val sum = (a: Int, b: Int) => a + b
+    val curriedSum = sut.curry(sum)
+    assertEquals(curriedSum(1)(2), 3)
+  }
+
+  test("Uncurries a function of two arguments") {
+    val curriedProduct = (a: Int) => (b: Int) => a * b
+    val product = sut.uncurry(curriedProduct)
+    assertEquals(product(10, 10), 100)
+  }
+
+  test("An uncurried curried function is the same than the original unmodified function") {
+    val g = (a: String, b: String) => a + b
+    val f = sut.uncurry(sut.curry(g))
+    assertEquals(f("foo", "bar"), "foobar")
+  }
 }

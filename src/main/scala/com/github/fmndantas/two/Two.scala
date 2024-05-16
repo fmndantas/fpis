@@ -10,7 +10,7 @@ trait Two {
     f(0, 1, 0)
   }
 
-  def isSorted[A](as: Array[A], ordered: (A, A) => Boolean): Boolean = 
+  def isSorted[A](as: Array[A], ordered: (A, A) => Boolean): Boolean =
     @annotation.tailrec
     def f(i: Int): Boolean =
       if (i == as.size - 1) true
@@ -18,4 +18,8 @@ trait Two {
       else f(i + 1)
     if (as.size < 2) true
     else f(0)
+
+  def curry[A, B, C](f: (A, B) => C): A => (B => C) = a => b => f(a, b)
+
+  def uncurry[A, B, C](f: A => B => C): (A, B) => C = (a, b) => f(a)(b)
 }
