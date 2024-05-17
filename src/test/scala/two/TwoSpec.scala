@@ -44,4 +44,12 @@ class TwoSpec extends munit.FunSuite with MultipleCases {
     val f = sut.uncurry(sut.curry(g))
     assertEquals(f("foo", "bar"), "foobar")
   }
+
+  def fibo(n: Int): Int = (1 to n).foldLeft((0, 1)) { case ((a, b), _) => (b, a + b) }._1
+
+  test("foo") {
+    assertEquals(fibo(0), 0)
+    assertEquals(fibo(1), 1)
+    assertEquals(fibo(2), 1)
+  }
 }
