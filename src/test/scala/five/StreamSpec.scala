@@ -65,7 +65,17 @@ class StreamSpec extends munit.FunSuite with MultipleCases {
     assertEquals(stream.forAll(f), ans)
   }
 
-  // TEST: manual assert
+  // TEST: manual assert, not good
+  test("headOption laziness causes nothing to be printed") {
+    Stream
+      .cons[Int](
+        1,
+        Stream.cons({ println("headOption is not lazy"); 2 }, Stream.empty)
+      )
+      .headOption
+  }
+
+  // TEST: manual assert, not good
   test("take laziness causes nothing to be printed") {
     Stream
       .cons[Int](
@@ -75,12 +85,12 @@ class StreamSpec extends munit.FunSuite with MultipleCases {
       .take(1)
   }
 
-  // TEST: manual assert
+  // TEST: manual assert, not good
   test("drop laziness causes nothing to be printed") {
     Stream.cons[Int]({ println("drop is not lazy"); 1 }, Stream.empty).drop(1)
   }
 
-  // TEST: manual assert
+  // TEST: manual assert, not good
   test("takeWhile laziness causes nothing to be printed") {
     Stream
       .cons[Int](
@@ -90,7 +100,7 @@ class StreamSpec extends munit.FunSuite with MultipleCases {
       .takeWhile(_ > 0)
   }
 
-  // TEST: manual assert
+  // TEST: manual assert, not good
   test("forAll laziness causes nothing to be printed") {
     Stream
       .cons[Int](

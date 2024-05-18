@@ -1,10 +1,14 @@
 package com.github.fmndantas.five
 
 sealed trait Stream[+A] {
-  def headOption[A]: Option[A] = this match {
-    case Empty         => None
-    case Cons[A](h, t) => Some(h())
-  }
+  // NOTE: v1
+  // def headOption[A]: Option[A] = this match {
+  //   case Empty         => None
+  //   case Cons[A](h, t) => Some(h())
+  // }
+
+  // NOTE: v2
+  def headOption: Option[A] = foldRight(None)((a, b) => Some(a))
 
   def toList[A]: List[A] = this match {
     case Empty         => List.empty[A]
