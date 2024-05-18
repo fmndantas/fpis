@@ -1,7 +1,5 @@
 package com.github.fmndantas.five
 
-import com.github.fmndantas.five.Stream.empty
-
 sealed trait Stream[+A] {
   def headOption[A]: Option[A] = this match {
     case Empty         => None
@@ -28,7 +26,7 @@ sealed trait Stream[+A] {
     @annotation.tailrec
     def f(i: Int, suffix: => Stream[A]): Stream[A] =
       suffix match {
-        case Empty => empty
+        case Empty => Stream.empty
         case Cons(h, t) =>
           if (i == n) suffix
           else f(i + 1, t())
