@@ -2,17 +2,17 @@ package com.github.fmndantas.five
 
 sealed trait Stream[+A] {
   // NOTE: v1
-  // def headOption[A]: Option[A] = this match {
-  //   case Empty         => None
+  // def headOption: Option[A] = this match {
   //   case Cons[A](h, t) => Some(h())
+  //   case _             => None
   // }
 
   // NOTE: v2
   def headOption: Option[A] = foldRight(None)((a, b) => Some(a))
 
-  def toList[A]: List[A] = this match {
-    case Empty         => List.empty[A]
+  def toList: List[A] = this match {
     case Cons[A](h, t) => List(h()) ++ t().toList
+    case _             => List.empty[A]
   }
 
   def foldRight[B](z: => B)(f: (A, => B) => B): B = this match {
@@ -47,11 +47,11 @@ sealed trait Stream[+A] {
   //   @annotation.tailrec
   //   def f(prefix: Seq[A], suffix: => Stream[A]): Stream[A] =
   //     suffix match {
-  //       case Empty => Stream(prefix*)
   //       case Cons(h, t) =>
   //         lazy val evaluated_h = h()
   //         if (!p(evaluated_h)) Stream(prefix*)
   //         else f(prefix :+ evaluated_h, t())
+  //       case _ => Stream(prefix*)
   //     }
   //   f(Seq.empty[A], this)
 
