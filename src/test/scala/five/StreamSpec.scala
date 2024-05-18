@@ -84,7 +84,7 @@ class StreamSpec extends munit.FunSuite with MultipleCases {
   test("takeWhile laziness causes nothing to be printed") {
     Stream
       .cons[Int](
-        -1,
+        -2,
         Stream.cons({ println("takeWhile is not lazy"); -1 }, Stream.empty)
       )
       .takeWhile(_ > 0)

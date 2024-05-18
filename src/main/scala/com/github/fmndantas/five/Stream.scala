@@ -52,11 +52,11 @@ sealed trait Stream[+A] {
   //   f(Seq.empty[A], this)
 
   // NOTE: v2
+  // NOTE: why "{ case (a, b) }" evaluates b?
   def takeWhile(p: A => Boolean): Stream[A] =
-    val selected = foldRight(Seq.empty[A]) { case (a, b) =>
-      if (!p(a)) Seq.empty[A] else b :+ a
-    }
-    Stream(selected*)
+    foldRight(Stream.empty)((a, b) =>
+      if !p(a) then Stream.empty else Stream.cons(a, b)
+    )
 
   def forAll(p: A => Boolean): Boolean = foldRight(true)((a, b) => p(a) && b)
 }
