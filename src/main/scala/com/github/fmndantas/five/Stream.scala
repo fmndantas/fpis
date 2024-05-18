@@ -11,6 +11,11 @@ sealed trait Stream[+A] {
     case Cons[A](h, t) => List(h()) ++ t().toList
   }
 
+  def foldRight[B](z: => B)(f: (A, => B) => B): B = this match {
+    case Cons(h, t) => f(h(), t().foldRight(z)(f))
+    case _          => z
+  }
+
   def take(n: Int): Stream[A] =
     @annotation.tailrec
     def f(i: Int, prefix: Seq[A], suffix: => Stream[A]): Stream[A] =
@@ -33,17 +38,27 @@ sealed trait Stream[+A] {
       }
     f(0, this)
 
+  // NOTE: v1
+  // def takeWhile(p: A => Boolean): Stream[A] =
+  //   @annotation.tailrec
+  //   def f(prefix: Seq[A], suffix: => Stream[A]): Stream[A] =
+  //     suffix match {
+  //       case Empty => Stream(prefix*)
+  //       case Cons(h, t) =>
+  //         lazy val evaluated_h = h()
+  //         if (!p(evaluated_h)) Stream(prefix*)
+  //         else f(prefix :+ evaluated_h, t())
+  //     }
+  //   f(Seq.empty[A], this)
+
+  // NOTE: v2
   def takeWhile(p: A => Boolean): Stream[A] =
-    @annotation.tailrec
-    def f(prefix: Seq[A], suffix: => Stream[A]): Stream[A] =
-      suffix match {
-        case Empty => Stream(prefix*)
-        case Cons(h, t) =>
-          lazy val evaluated_h = h()
-          if (!p(evaluated_h)) Stream(prefix*)
-          else f(prefix :+ evaluated_h, t())
-      }
-    f(Seq.empty[A], this)
+    val selected = foldRight(Seq.empty[A]) { case (a, b) =>
+      if (!p(a)) Seq.empty[A] else b :+ a
+    }
+    Stream(selected*)
+
+  def forAll(p: A => Boolean): Boolean = foldRight(true)((a, b) => p(a) && b)
 }
 
 case object Empty extends Stream[Nothing]
