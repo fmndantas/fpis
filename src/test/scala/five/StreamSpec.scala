@@ -5,44 +5,73 @@ class StreamSpec extends munit.FunSuite with MultipleCases {
     (Stream(), None),
     (Stream(1), Some(1)),
     (Stream("foo", "bar"), Some("foo"))
-  ) { case (stream, expectedResult) =>
-    assertEquals(stream.headOption, expectedResult)
+  ) { case (stream, ans) =>
+    assertEquals(stream.headOption, ans)
   }
 
   cases("toList converts stream to List")(
     (Stream.empty[Int], List.empty[Int]),
     (Stream(1, 2, 3, 4, 5), List(1, 2, 3, 4, 5)),
     (Stream("foo", "bar"), List("foo", "bar"))
-  ) { case (stream, expectedList) =>
-    assertEquals(stream.toList, expectedList)
+  ) { case (stream, ans) =>
+    assertEquals(stream.toList, ans)
   }
 
   cases("take(n) returns the first n elements of a Stream")(
-    (Stream.empty[Int], 10, Seq.empty[Int]),
+    (Stream.empty[Int], 10, List.empty[Int]),
     // NOTE: n < stream.size
-    (Stream(1, 2, 3, 4), 0, Seq.empty[Int]),
-    (Stream(1, 2, 3, 4), 1, Seq(1)),
-    (Stream(1, 2, 3, 4), 2, Seq(1, 2)),
-    (Stream(1, 2, 3, 4), 3, Seq(1, 2, 3)),
+    (Stream(1, 2, 3, 4), 0, List.empty[Int]),
+    (Stream(1, 2, 3, 4), 1, List(1)),
+    (Stream(1, 2, 3, 4), 2, List(1, 2)),
+    (Stream(1, 2, 3, 4), 3, List(1, 2, 3)),
     // NOTE: n == stream.size
-    (Stream(1, 2, 3, 4), 4, Seq(1, 2, 3, 4)),
+    (Stream(1, 2, 3, 4), 4, List(1, 2, 3, 4)),
     // NOTE: n > stream.size
-    (Stream(1, 2, 3, 4), 5, Seq(1, 2, 3, 4)),
-    (Stream(1, 2, 3, 4), 6, Seq(1, 2, 3, 4))
-  ) { case (stream, n, expectedSeq) =>
-    assertEquals[Seq[Int], Seq[Int]](stream.take(n), expectedSeq)
+    (Stream(1, 2, 3, 4), 5, List(1, 2, 3, 4)),
+    (Stream(1, 2, 3, 4), 6, List(1, 2, 3, 4))
+  ) { case (stream, n, ans) =>
+    assertEquals(stream.take(n).toList, ans)
   }
 
   cases("drop(n) skips the first n elements of a Stream")(
-    (Stream.empty[Int], 10, Seq.empty[Int]),
-    (Stream(1, 2, 3, 4), 0, Seq(1, 2, 3, 4)),
-    (Stream(1, 2, 3, 4), 1, Seq(2, 3, 4)),
-    (Stream(1, 2, 3, 4), 2, Seq(3, 4)),
-    (Stream(1, 2, 3, 4), 3, Seq(4)),
-    (Stream(1, 2, 3, 4), 4, Seq.empty[Int]),
-    (Stream(1, 2, 3, 4), 5, Seq.empty[Int]),
-    (Stream(1, 2, 3, 4), 6, Seq.empty[Int]),
-  ) { case (stream, n, expectedSeq) =>
-    assertEquals[Seq[Int], Seq[Int]](stream.drop(n), expectedSeq)
+    (Stream.empty[Int], 10, List.empty[Int]),
+    (Stream(1, 2, 3, 4), 0, List(1, 2, 3, 4)),
+    (Stream(1, 2, 3, 4), 1, List(2, 3, 4)),
+    (Stream(1, 2, 3, 4), 2, List(3, 4)),
+    (Stream(1, 2, 3, 4), 3, List(4)),
+    (Stream(1, 2, 3, 4), 4, List.empty[Int]),
+    (Stream(1, 2, 3, 4), 5, List.empty[Int]),
+    (Stream(1, 2, 3, 4), 6, List.empty[Int])
+  ) { case (stream, n, ans) =>
+    assertEquals(stream.drop(n).toList, ans)
+  }
+
+  cases(
+    "takeWhile returns starting elements of a stream that match a predicate"
+  )(
+    (Stream.empty[Int], (x: Int) => x > 0, List.empty[Int]),
+    (Stream(1, 1, 1, -1, -1, -1), (x: Int) => x > 0, Seq(1, 1, 1)),
+    (Stream(-1, -1, -1, 1, 1, 1), (x: Int) => x > 0, Seq.empty[Int])
+  ) { case (stream: Stream[Int], f: (Int => Boolean), ans: List[Int]) =>
+    assertEquals(stream.takeWhile(f).toList, ans)
+  }
+
+  // TEST: manual assert 
+  test("take laziness causes nothing to be printed") {
+    Stream
+      .cons[Int](1, Stream.cons({ println("second element"); 2 }, Stream.empty))
+      .take(1)
+  }
+
+  // TEST: manual assert
+  test("drop laziness causes nothing to be printed") {
+    Stream.cons[Int]({ println("first element"); 1 }, Stream.empty).drop(1)
+  }
+
+  // TEST: manual assert
+  test("takeWhile laziness causes nothing to be printed") {
+    Stream
+      .cons[Int](-1, Stream.cons({ println("second element"); -1 }, Stream.empty))
+      .takeWhile(_ > 0)
   }
 }
