@@ -68,7 +68,16 @@ class StreamSpec extends munit.FunSuite with MultipleCases {
   cases("map modifies stream by applying function to all elements")(
     (Stream.empty[Int], (x: Int) => x + 1, Seq.empty[Int]),
     (Stream(1, 1, 1), (x: Int) => x + 1, Seq(2, 2, 2)),
+    (Stream(-1, -1, -1), (x: Int) => -x, Seq(1, 1, 1))
   ) { case (stream, f, ans) =>
     assertEquals[Seq[Int], Seq[Int]](stream.map(f).toList, ans)
+  }
+
+  cases("filter keep stream items that conforms to predicate")(
+    (Stream.empty[Int], (x: Int) => x >= 0, Seq.empty[Int]),
+    (Stream(-1, 0, 1), (x: Int) => x >= 0, Seq(0, 1)),
+    (Stream(-1, 0, 1), (x: Int) => x < 0, Seq(-1))
+  ) { case (stream, f, ans) =>
+    assertEquals[Seq[Int], Seq[Int]](stream.filter(f).toList, ans)
   }
 }
