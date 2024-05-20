@@ -50,6 +50,7 @@ class StreamLazinessSpec extends munit.FunSuite {
       .map(_ + 1)
   }
 
+  // FIX: filter is lazy iff the first element satisfies predicate
   test("filter is not lazy") {
     Stream
       .cons[Int](
