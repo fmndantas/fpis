@@ -48,9 +48,9 @@ sealed trait Stream[+A] {
   //   def f(prefix: Seq[A], suffix: => Stream[A]): Stream[A] =
   //     suffix match {
   //       case Cons(h, t) =>
-  //         lazy val evaluated_h = h()
-  //         if (!p(evaluated_h)) Stream(prefix*)
-  //         else f(prefix :+ evaluated_h, t())
+  //         lazy val evaluatedH = h()
+  //         if (!p(evaluatedH)) Stream(prefix*)
+  //         else f(prefix :+ evaluatedH, t())
   //       case _ => Stream(prefix*)
   //     }
   //   f(Seq.empty[A], this)
@@ -64,9 +64,12 @@ sealed trait Stream[+A] {
 
   def forAll(p: A => Boolean): Boolean = foldRight(true)((a, b) => p(a) && b)
 
-  def map[B](f: A => B): Stream[B] = foldRight(Stream.empty[B])((a, b) => Stream.cons(f(a), b))
+  def map[B](f: A => B): Stream[B] =
+    foldRight(Stream.empty[B])((a, b) => Stream.cons(f(a), b))
 
-  def filter(p: A => Boolean): Stream[A] = foldRight(Stream.empty[A])((a, b) => if p(a) then Stream.cons(a, b) else b)
+  def filter(p: A => Boolean): Stream[A] = foldRight(Stream.empty) { (a, b) =>
+    if p(a) then Stream.cons(a, b) else b
+  }
 }
 
 case object Empty extends Stream[Nothing]
