@@ -54,8 +54,8 @@ class StreamSpec extends munit.FunSuite with MultipleCases {
     (Stream(-1, -1, -1, 1, 1, 1), (x: Int) => x > 0, Seq.empty[Int]),
     (Stream(1, 1, 1, 1, 1, 1), (x: Int) => x > 0, Seq.fill(6)(1)),
     (Stream(1, 1, 1, 1, 1, 2), (x: Int) => x != 2, Seq.fill(5)(1))
-  ) { case (stream: Stream[Int], f: (Int => Boolean), ans: List[Int]) =>
-    assertEquals(stream.takeWhile(f).toList, ans)
+  ) { case (stream, f, ans) =>
+    assertEquals[Seq[Int], Seq[Int]](stream.takeWhile(f).toList, ans)
   }
 
   cases("forAll checks that all elements in a stream match a given predicate")(
