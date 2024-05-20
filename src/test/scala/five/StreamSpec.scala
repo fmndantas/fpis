@@ -65,48 +65,10 @@ class StreamSpec extends munit.FunSuite with MultipleCases {
     assertEquals(stream.forAll(f), ans)
   }
 
-  // TEST: manual assert, not good
-  test("headOption laziness causes nothing to be printed") {
-    Stream
-      .cons[Int](
-        1,
-        Stream.cons({ println("headOption is not lazy"); 2 }, Stream.empty)
-      )
-      .headOption
-  }
-
-  // TEST: manual assert, not good
-  test("take laziness causes nothing to be printed") {
-    Stream
-      .cons[Int](
-        1,
-        Stream.cons({ println("take is not lazy"); 2 }, Stream.empty)
-      )
-      .take(1)
-  }
-
-  // TEST: manual assert, not good
-  test("drop laziness causes nothing to be printed") {
-    Stream.cons[Int]({ println("drop is not lazy"); 1 }, Stream.empty).drop(1)
-  }
-
-  // TEST: manual assert, not good
-  test("takeWhile laziness causes nothing to be printed") {
-    Stream
-      .cons[Int](
-        -2,
-        Stream.cons({ println("takeWhile is not lazy"); -1 }, Stream.empty)
-      )
-      .takeWhile(_ > 0)
-  }
-
-  // TEST: manual assert, not good
-  test("forAll laziness causes nothing to be printed") {
-    Stream
-      .cons[Int](
-        -1,
-        Stream.cons({ println("forAll is not lazy"); -1 }, Stream.empty)
-      )
-      .forAll(_ > 0)
+  cases("map modifies stream by applying function to all elements")(
+    (Stream.empty[Int], (x: Int) => x + 1, Seq.empty[Int]),
+    (Stream(1, 1, 1), (x: Int) => x + 1, Seq(2, 2, 2)),
+  ) { case (stream, f, ans) =>
+    assertEquals[Seq[Int], Seq[Int]](stream.map(f).toList, ans)
   }
 }
