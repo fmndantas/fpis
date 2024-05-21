@@ -26,8 +26,8 @@ sealed trait Stream[+A] {
       if (i == n) Stream(prefix*)
       else
         suffix match {
-          case Empty      => Stream(prefix*)
           case Cons(h, t) => f(i + 1, prefix :+ h(), t())
+          case _          => Stream(prefix*)
         }
     f(0, Seq.empty[A], this)
 
@@ -35,10 +35,10 @@ sealed trait Stream[+A] {
     @annotation.tailrec
     def f(i: Int, suffix: => Stream[A]): Stream[A] =
       suffix match {
-        case Empty => Stream.empty
         case Cons(h, t) =>
           if (i == n) suffix
           else f(i + 1, t())
+        case _ => Stream.empty
       }
     f(0, this)
 
@@ -70,6 +70,11 @@ sealed trait Stream[+A] {
   def filter(p: A => Boolean): Stream[A] = foldRight(Stream.empty) { (a, b) =>
     if p(a) then Stream.cons(a, b) else b
   }
+
+  def flatMap[B](f: A => Stream[B]): Stream[B] =
+    foldRight(Stream.empty[B]) { (a, b) =>
+      f(a).foldRight(b) { (c, d) => Stream.cons(c, d) }
+    }
 }
 
 case object Empty extends Stream[Nothing]

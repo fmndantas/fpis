@@ -1,16 +1,17 @@
 import com.github.fmndantas.five.Stream
 
 class StreamLazinessSpec extends munit.FunSuite {
-  test("headOption is not lazy") {
+  test("headOption is lazy") {
     Stream
       .cons[Int](
         1,
-        Stream.cons({ assert(false, "headOption is not lazy"); 2 }, Stream.empty)
+        Stream
+          .cons({ assert(false, "headOption is not lazy"); 2 }, Stream.empty)
       )
       .headOption
   }
 
-  test("take is not lazy") {
+  test("take is lazy") {
     Stream
       .cons[Int](
         1,
@@ -19,20 +20,23 @@ class StreamLazinessSpec extends munit.FunSuite {
       .take(1)
   }
 
-  test("drop is not lazy") {
-    Stream.cons[Int]({ assert(false, "drop is not lazy"); 1 }, Stream.empty).drop(1)
+  test("drop is lazy") {
+    Stream
+      .cons[Int]({ assert(false, "drop is not lazy"); 1 }, Stream.empty)
+      .drop(1)
   }
 
-  test("takeWhile is not lazy") {
+  test("takeWhile is lazy") {
     Stream
       .cons[Int](
         -2,
-        Stream.cons({ assert(false, "takeWhile is not lazy"); -1 }, Stream.empty)
+        Stream
+          .cons({ assert(false, "takeWhile is not lazy"); -1 }, Stream.empty)
       )
       .takeWhile(_ > 0)
   }
 
-  test("forAll is not lazy") {
+  test("forAll is lazy") {
     Stream
       .cons[Int](
         -1,
@@ -41,7 +45,7 @@ class StreamLazinessSpec extends munit.FunSuite {
       .forAll(_ > 0)
   }
 
-  test("map is not lazy") {
+  test("map is lazy") {
     Stream
       .cons[Int](
         -1,
@@ -50,13 +54,18 @@ class StreamLazinessSpec extends munit.FunSuite {
       .map(_ + 1)
   }
 
-  // FIX: filter is lazy iff the first element satisfies predicate
-  test("filter is not lazy") {
+  test("filter is lazy if and only if the first element satisfies predicate") {
     Stream
       .cons[Int](
-        -1,
+        1,
         Stream.cons({ assert(false, "filter is not lazy"); -1 }, Stream.empty)
       )
       .filter(_ > 0)
+  }
+
+  test("flatMap is lazy") {
+    Stream
+      .cons[Int](1, { assert(false, "flatMap is not lazy"); Stream.empty })
+      .flatMap(v => Stream(v, v))
   }
 }

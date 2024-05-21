@@ -80,4 +80,11 @@ class StreamSpec extends munit.FunSuite with MultipleCases {
   ) { case (stream, f, ans) =>
     assertEquals[Seq[Int], Seq[Int]](stream.filter(f).toList, ans)
   }
+
+  cases("flatMap creates stream of streams")(
+    (Stream(1, 2), (x: Int) => Stream.empty[Int], Seq.empty[Int]),
+    (Stream(1, 2), (x: Int) => Stream(x + 1, x + 1), Seq(2, 2, 3, 3))
+  ) { case (stream, f: (Int => Stream[Int]), ans) =>
+    assertEquals[Seq[Int], Seq[Int]](stream.flatMap(f).toList, ans)
+  }
 }
