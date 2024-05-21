@@ -87,4 +87,12 @@ class StreamSpec extends munit.FunSuite with MultipleCases {
   ) { case (stream, f: (Int => Stream[Int]), ans) =>
     assertEquals[Seq[Int], Seq[Int]](stream.flatMap(f).toList, ans)
   }
+
+  test("from generates infinite stream like (n, n+1, n+2, ...)") {
+    assertEquals[Seq[Int], Seq[Int]](Stream.from(0).take(10).toList, (0 until 10).toList)
+  }
+
+  test("fibs generates the infinite stream of Fibonacci numbers") {
+    assertEquals[Seq[Int], Seq[Int]](Stream.fibs.take(10).toList, List(0, 1, 1, 2, 3, 5, 8, 13, 21, 34))
+  }
 }

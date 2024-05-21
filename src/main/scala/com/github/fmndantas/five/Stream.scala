@@ -72,9 +72,10 @@ sealed trait Stream[+A] {
   }
 
   def flatMap[B](f: A => Stream[B]): Stream[B] =
-    foldRight(Stream.empty[B]) { (a, b) =>
-      f(a).foldRight(b) { (c, d) => Stream.cons(c, d) }
-    }
+    foldRight(Stream.empty[B])((a, b) => f(a).append(b))
+
+  def append[A2 >: A](other: => Stream[A2]): Stream[A2] =
+    foldRight(other)((a, b) => Stream.cons(a, b))
 }
 
 case object Empty extends Stream[Nothing]
@@ -91,4 +92,12 @@ object Stream {
   def apply[A](as: A*): Stream[A] =
     if (as.isEmpty) empty
     else cons(as.head, apply(as.tail*))
+
+  def from(n: Int): Stream[Int] = cons(n, from(n + 1))
+
+  // FIX: can be improved?
+  def fibs: Stream[Int] = 
+    def f(a: Int, b: Int): Stream[Int] = 
+      Stream.cons(a + b, f(b, a + b))
+    Stream.cons(0, Stream.cons(1, f(0, 1)))
 }
