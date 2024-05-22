@@ -153,4 +153,33 @@ class StreamSpec extends munit.FunSuite with MultipleCases {
       ans
     )
   }
+
+  cases(
+    "zipAll zips streams using None if any stream ends early"
+  )(
+    (
+      Stream.empty[Int],
+      Stream.empty[Int],
+      Seq.empty[(Option[Int], Option[Int])]
+    ),
+    (
+      Stream(1, 2, 3),
+      Stream(10, 11),
+      Seq((Some(1), Some(10)), (Some(2), Some(11)), (Some(3), None))
+    ),
+    (
+      Stream(1, 2),
+      Stream(10, 11, 12),
+      Seq((Some(1), Some(10)), (Some(2), Some(11)), (None, Some(12)))
+    ),
+    (
+      Stream(1, 2, 3),
+      Stream(10, 11, 12),
+      Seq((Some(1), Some(10)), (Some(2), Some(11)), (Some(3), Some(12)))
+    )
+  ) { case (streamA, streamB, ans) =>
+    assertEquals[Seq[(Option[Int], Option[Int])], Seq[
+      (Option[Int], Option[Int])
+    ]](streamA.zipAll(streamB).toList, ans)
+  }
 }
