@@ -69,10 +69,18 @@ sealed trait Stream[+A] {
 
   // NOTE: v2
   // NOTE: why "{ case (a, b) }" evaluates b?
+  // def takeWhile(p: A => Boolean): Stream[A] =
+  //   foldRight(Stream.empty)((a, b) =>
+  //     if !p(a) then Stream.empty else Stream.cons(a, b)
+  //   )
+
+  // NOTE: v3
   def takeWhile(p: A => Boolean): Stream[A] =
-    foldRight(Stream.empty)((a, b) =>
-      if !p(a) then Stream.empty else Stream.cons(a, b)
-    )
+    Stream.unfold(this) { s =>
+      s match
+        case Cons(h, t) if p(h()) => Some(h(), t())
+        case _          => None
+    }
 
   def forAll(p: A => Boolean): Boolean = foldRight(true)((a, b) => p(a) && b)
 
