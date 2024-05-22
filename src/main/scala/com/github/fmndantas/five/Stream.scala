@@ -72,19 +72,12 @@ sealed trait Stream[+A] {
   //   foldRight(Stream.empty[B])((a, b) => Stream.cons(f(a), b))
 
   // NOTE: v2
-  // FIX: this really need to be simplified
   def map[B](f: A => B): Stream[B] =
-    this match
-      case Cons(h, t) =>
-        Stream.cons(
-          f(h()),
-          unfold(t()) { s =>
-            s match
-              case Cons(hh, tt) => Some((f(hh()), tt()))
-              case _            => None
-          }
-        )
-      case _ => Stream.empty
+    unfold(this) { s =>
+      s match
+        case Cons(h, t) => Some(f(h()), t())
+        case _          => None
+    }
 
   def filter(p: A => Boolean): Stream[A] = foldRight(Stream.empty) { (a, b) =>
     if p(a) then Stream.cons(a, b) else b
