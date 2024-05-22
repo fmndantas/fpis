@@ -1,6 +1,7 @@
 package com.github.fmndantas.five
 
 import com.github.fmndantas.five.IntegerState
+import com.github.fmndantas.five.Stream.unfold
 
 sealed trait Stream[+A] {
   // NOTE: v1
@@ -66,8 +67,24 @@ sealed trait Stream[+A] {
 
   def forAll(p: A => Boolean): Boolean = foldRight(true)((a, b) => p(a) && b)
 
+  // NOTE: v1
+  // def map[B](f: A => B): Stream[B] =
+  //   foldRight(Stream.empty[B])((a, b) => Stream.cons(f(a), b))
+
+  // NOTE: v2
+  // FIX: this really need to be simplified
   def map[B](f: A => B): Stream[B] =
-    foldRight(Stream.empty[B])((a, b) => Stream.cons(f(a), b))
+    this match
+      case Cons(h, t) =>
+        Stream.cons(
+          f(h()),
+          unfold(t()) { s =>
+            s match
+              case Cons(hh, tt) => Some((f(hh()), tt()))
+              case _            => None
+          }
+        )
+      case _ => Stream.empty
 
   def filter(p: A => Boolean): Stream[A] = foldRight(Stream.empty) { (a, b) =>
     if p(a) then Stream.cons(a, b) else b
