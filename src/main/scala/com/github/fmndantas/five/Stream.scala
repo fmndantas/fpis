@@ -95,9 +95,9 @@ object Stream {
 
   def from(n: Int): Stream[Int] = cons(n, from(n + 1))
 
-  // FIX: can be improved?
+  // FIX: can be simplified?
   def fibs: Stream[Int] = 
     def f(a: Int, b: Int): Stream[Int] = 
       Stream.cons(a + b, f(b, a + b))
-    Stream.cons(0, Stream.cons(1, f(0, 1)))
+    Stream.cons(0, f(1, 0))
 }
