@@ -182,4 +182,24 @@ class StreamSpec extends munit.FunSuite with MultipleCases {
       (Option[Int], Option[Int])
     ]](streamA.zipAll(streamB).toList, ans)
   }
+
+  cases(
+    "startsWith determines if a stream has another stream as prefix"
+  )(
+    (Stream.empty[Int], Stream.empty[Int], true),
+    (Stream(1, 2, 3, 4), Stream(1, 2, 3, 4), true),
+    (Stream(1, 2, 3, 4), Stream(10, 2, 3, 4), false),
+    (Stream(1, 2, 3, 4), Stream(1, 2, 3, 3), false),
+    (Stream(1, 2, 3, 4), Stream(1, 2), true),
+    (Stream(1, 2, 3, 4), Stream(1, 1), false),
+    (Stream(1, 2, 3, 4), Stream.empty[Int], true),
+    (Stream(1, 2), Stream(1, 2, 3, 4), false),
+    (Stream.empty[Int], Stream(10), false),
+    (Stream(10), Stream.empty[Int], true),
+    (Stream.ones, Stream(1), true),
+    (Stream("a", "b"), Stream("a"), true),
+    (Stream("t", "b"), Stream("a"), false)
+  ) { case (streamA, streamB, ans) =>
+    assertEquals(streamA.startsWith(streamB), ans)
+  }
 }

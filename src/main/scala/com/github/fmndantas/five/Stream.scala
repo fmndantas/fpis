@@ -1,7 +1,6 @@
 package com.github.fmndantas.five
 
 import com.github.fmndantas.five.IntegerState
-import com.github.fmndantas.five.Stream.unfold
 
 sealed trait Stream[+A] {
   // NOTE: v1
@@ -36,7 +35,7 @@ sealed trait Stream[+A] {
   //   f(0, Seq.empty[A], this)
 
   // NOTE: v2
-  def take(n: Int): Stream[A] = unfold((0, this)) { s =>
+  def take(n: Int): Stream[A] = Stream.unfold((0, this)) { s =>
     s match
       case (`n`, _)              => None
       case (counter, Cons(h, t)) => Some(h(), (counter + 1, t()))
@@ -90,7 +89,7 @@ sealed trait Stream[+A] {
 
   // NOTE: v2
   def map[B](f: A => B): Stream[B] =
-    unfold(this) { s =>
+    Stream.unfold(this) { s =>
       s match
         case Cons(h, t) => Some(f(h()), t())
         case _          => None
@@ -113,13 +112,23 @@ sealed trait Stream[+A] {
         case _                            => None
     }
 
-  def zipAll[B](other: Stream[B]): Stream[(Option[A], Option[B])] = 
-    Stream.unfold((this, other)) { case (s1, s2) => 
+  def zipAll[B](other: Stream[B]): Stream[(Option[A], Option[B])] =
+    Stream.unfold((this, other)) { case (s1, s2) =>
       (s1, s2) match
         case (Cons(h, t), Empty) => Some(((Some(h()), None), (t(), Empty)))
         case (Empty, Cons(h, t)) => Some(((None, Some(h())), (Empty, t())))
-        case (Cons(h1, t1), Cons(h2, t2)) => Some(((Some(h1()), Some(h2())), (t1(), t2())))
+        case (Cons(h1, t1), Cons(h2, t2)) =>
+          Some(((Some(h1()), Some(h2())), (t1(), t2())))
         case _ => None
+    }
+
+  def startsWith[A2 >: A](other: Stream[A2]): Boolean =
+    this.zipAll(other).foldRight(true) { (h, t) =>
+      h match
+        case (Some(a), Some(b)) => (a == b) && t
+        case (None, Some(b))    => false
+        case (Some(_), None)    => true
+        case _                  => ???
     }
 }
 
