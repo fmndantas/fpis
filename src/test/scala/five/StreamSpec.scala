@@ -1,3 +1,4 @@
+import com.github.fmndantas.five.IntegerState
 import com.github.fmndantas.five.Stream
 
 class StreamSpec extends munit.FunSuite with MultipleCases {
@@ -88,11 +89,51 @@ class StreamSpec extends munit.FunSuite with MultipleCases {
     assertEquals[Seq[Int], Seq[Int]](stream.flatMap(f).toList, ans)
   }
 
+  test("ones generates infinite stream filled with ones") {
+    assertEquals[Seq[Int], Seq[Int]](Stream.ones.take(20).toList, Seq.fill(20)(1))
+  }
+
   test("from generates infinite stream like (n, n+1, n+2, ...)") {
-    assertEquals[Seq[Int], Seq[Int]](Stream.from(0).take(10).toList, (0 until 10).toList)
+    assertEquals[Seq[Int], Seq[Int]](
+      Stream.from(0).take(10).toList,
+      (0 until 10).toList
+    )
   }
 
   test("fibs generates the infinite stream of Fibonacci numbers") {
-    assertEquals[Seq[Int], Seq[Int]](Stream.fibs.take(10).toList, List(0, 1, 1, 2, 3, 5, 8, 13, 21, 34))
+    assertEquals[Seq[Int], Seq[Int]](
+      Stream.fibs.take(10).toList,
+      List(0, 1, 1, 2, 3, 5, 8, 13, 21, 34)
+    )
+  }
+
+  cases(
+    "unfold creates streams taking an initial state and creating the next states"
+  )(
+    (
+      Stream.unfold[Int, IntegerState](IntegerState(0))(_.increment),
+      10,
+      (1 to 10).toList
+    ),
+    (
+      Stream.unfold[Int, IntegerState](IntegerState(1))(_.keep),
+      10,
+      List.fill(10)(1)
+    ),
+    (
+      Stream.unfold[Int, IntegerState](IntegerState(4))(_.incrementUpToTen),
+      10,
+      (5 to 10).toList
+    )
+  ) { case (stream, amountOfItens, ans) =>
+    assertEquals[List[Int], List[Int]](
+      stream.take(amountOfItens).toList,
+      ans,
+      s"Ans should be $ans"
+    )
+  }
+
+  test("constant creates infinite stream with a constant integer") {
+    assertEquals(Stream.constant(42).take(10).toList, List.fill(10)(42))
   }
 }

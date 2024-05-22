@@ -1,5 +1,7 @@
 package com.github.fmndantas.five
 
+import com.github.fmndantas.five.IntegerState
+
 sealed trait Stream[+A] {
   // NOTE: v1
   // def headOption: Option[A] = this match {
@@ -93,11 +95,28 @@ object Stream {
     if (as.isEmpty) empty
     else cons(as.head, apply(as.tail*))
 
-  def from(n: Int): Stream[Int] = cons(n, from(n + 1))
+  def unfold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] =
+    f(z) match
+      case Some((a, s)) => cons(a, unfold(s)(f))
+      case _            => empty
 
-  // FIX: can be simplified?
-  def fibs: Stream[Int] = 
-    def f(a: Int, b: Int): Stream[Int] = 
-      Stream.cons(a + b, f(b, a + b))
-    Stream.cons(0, f(1, 0))
+  // FIX: can be simplified? Yes. See v2 below
+  // def fibs: Stream[Int] =
+  //   def f(a: Int, b: Int): Stream[Int] =
+  //     Stream.cons(a + b, f(b, a + b))
+  //   Stream.cons(0, f(1, 0))
+
+  // NOTE: v2
+  def fibs: Stream[Int] = cons(0, unfold(FibonacciState(0, 1))(_.next))
+
+  // NOTE: v1
+  // def from(n: Int): Stream[Int] = cons(n, from(n + 1))
+
+  // NOTE: v2
+  def from(n: Int): Stream[Int] =
+    cons(n, unfold(IntegerState(n))(_.increment))
+
+  def ones: Stream[Int] = unfold(IntegerState(1))(_.keep)
+
+  def constant(a: Int): Stream[Int] = unfold(IntegerState(a))(_.keep)
 }
