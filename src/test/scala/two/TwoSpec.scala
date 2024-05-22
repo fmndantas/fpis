@@ -47,7 +47,7 @@ class TwoSpec extends munit.FunSuite with MultipleCases {
 
   def fibo(n: Int): Int = (1 to n).foldLeft((0, 1)) { case ((a, b), _) => (b, a + b) }._1
 
-  test("foo") {
+  test("Iterative Fibonacci") {
     assertEquals(fibo(0), 0)
     assertEquals(fibo(1), 1)
     assertEquals(fibo(2), 1)
