@@ -68,4 +68,10 @@ class StreamLazinessSpec extends munit.FunSuite {
       .cons[Int](1, { assert(false, "flatMap is not lazy"); Stream.empty })
       .flatMap(v => Stream(v, v))
   }
+
+  test("zipWith is lazy") {
+    val s1 = Stream.empty[Int]
+    val s2 = Stream.cons({assert(false, "zipWith is not lazy"); 1}, Stream.empty[Int])
+    s1.zipWith(s2)
+  }
 }

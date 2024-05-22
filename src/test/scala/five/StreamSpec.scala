@@ -90,7 +90,10 @@ class StreamSpec extends munit.FunSuite with MultipleCases {
   }
 
   test("ones generates infinite stream filled with ones") {
-    assertEquals[Seq[Int], Seq[Int]](Stream.ones.take(20).toList, Seq.fill(20)(1))
+    assertEquals[Seq[Int], Seq[Int]](
+      Stream.ones.take(20).toList,
+      Seq.fill(20)(1)
+    )
   }
 
   test("from generates infinite stream like (n, n+1, n+2, ...)") {
@@ -135,5 +138,19 @@ class StreamSpec extends munit.FunSuite with MultipleCases {
 
   test("constant creates infinite stream with a constant integer") {
     assertEquals(Stream.constant(42).take(10).toList, List.fill(10)(42))
+  }
+
+  cases(
+    "zipWith zips streams while both streams have items"
+  )(
+    (Stream.empty[Int], Stream.empty[Int], Seq.empty[(Int, Int)]),
+    (Stream(1, 2, 3), Stream(10, 11), Seq((1, 10), (2, 11))),
+    (Stream(1, 2), Stream(10, 11, 12), Seq((1, 10), (2, 11))),
+    (Stream(1, 2, 3), Stream(10, 11, 12), Seq((1, 10), (2, 11), (3, 12)))
+  ) { case (streamA, streamB, ans) =>
+    assertEquals[Seq[(Int, Int)], Seq[(Int, Int)]](
+      streamA.zipWith(streamB).toList,
+      ans
+    )
   }
 }

@@ -79,7 +79,7 @@ sealed trait Stream[+A] {
     Stream.unfold(this) { s =>
       s match
         case Cons(h, t) if p(h()) => Some(h(), t())
-        case _          => None
+        case _                    => None
     }
 
   def forAll(p: A => Boolean): Boolean = foldRight(true)((a, b) => p(a) && b)
@@ -105,6 +105,13 @@ sealed trait Stream[+A] {
 
   def append[A2 >: A](other: => Stream[A2]): Stream[A2] =
     foldRight(other)((a, b) => Stream.cons(a, b))
+
+  def zipWith[B](other: Stream[B]): Stream[(A, B)] =
+    Stream.unfold((this, other)) { case (s1, s2) =>
+      (s1, s2) match
+        case (Cons(h1, t1), Cons(h2, t2)) => Some(((h1(), h2()), (t1(), t2())))
+        case _                            => None
+    }
 }
 
 case object Empty extends Stream[Nothing]
@@ -127,7 +134,7 @@ object Stream {
       case Some((a, s)) => cons(a, unfold(s)(f))
       case _            => empty
 
-  // FIX: can be simplified? Yes. See v2 below
+  // NOTE: can be simplified? Yes. See v2 below
   // def fibs: Stream[Int] =
   //   def f(a: Int, b: Int): Stream[Int] =
   //     Stream.cons(a + b, f(b, a + b))
