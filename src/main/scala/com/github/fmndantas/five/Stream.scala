@@ -23,16 +23,25 @@ sealed trait Stream[+A] {
     case _          => z
   }
 
-  def take(n: Int): Stream[A] =
-    @annotation.tailrec
-    def f(i: Int, prefix: Seq[A], suffix: => Stream[A]): Stream[A] =
-      if (i == n) Stream(prefix*)
-      else
-        suffix match {
-          case Cons(h, t) => f(i + 1, prefix :+ h(), t())
-          case _          => Stream(prefix*)
-        }
-    f(0, Seq.empty[A], this)
+  // NOTE: v1
+  // def take(n: Int): Stream[A] =
+  //   @annotation.tailrec
+  //   def f(i: Int, prefix: Seq[A], suffix: => Stream[A]): Stream[A] =
+  //     if (i == n) Stream(prefix*)
+  //     else
+  //       suffix match {
+  //         case Cons(h, t) => f(i + 1, prefix :+ h(), t())
+  //         case _          => Stream(prefix*)
+  //       }
+  //   f(0, Seq.empty[A], this)
+
+  // NOTE: v2
+  def take(n: Int): Stream[A] = unfold((0, this)) { s =>
+    s match
+      case (`n`, _)              => None
+      case (counter, Cons(h, t)) => Some(h(), (counter + 1, t()))
+      case _                     => None
+  }
 
   def drop(n: Int): Stream[A] =
     @annotation.tailrec
