@@ -216,4 +216,42 @@ class StreamSpec extends munit.FunSuite with MultipleCases {
       ans
     )
   }
+
+  cases("scanRight Stream[Int] suite")(
+    (Stream.empty[Int].scanRight(0)(_ + _), List(0)),
+    (Stream(1, 2, 3).scanRight(0)(_ + _), List(6, 5, 3, 0)),
+    (Stream(1, 2, 3).scanRight(0)((a, b) => b - a), List(-6, -5, -3, 0)),
+    (Stream(1, 2, 3).scanRight(1)(_ * _), List(6, 6, 3, 1))
+  ) { case (stream: Stream[Int], ans) =>
+    assertEquals[List[Int], List[Int]](stream.toList, ans)
+  }
+
+  cases("scanRight Stream[Stream[Int]] suite")(
+    (
+      Stream(1, 2).scanRight(Stream.empty[Int])((a, b) => Stream.cons(a, b)),
+      List(List(1, 2), List(2), List.empty[Int])
+    ),
+    (
+      Stream(1, 2, 3).scanRight(Stream(0))((a, b) => Stream.cons(a, b)),
+      List(List(1, 2, 3, 0), List(2, 3, 0), List(3, 0), List(0))
+    )
+  ) { case (stream, ans) =>
+    assertEquals[List[List[Int]], List[List[Int]]](
+      stream.toList.map(_.toList),
+      ans
+    )
+  }
+
+  cases("scanRight Stream[String] suite")(
+    (
+      Stream("t", "s", "e", "t").scanRight("")(_ + _),
+      List("tset", "set", "et", "t", "")
+    ),
+    (
+      Stream("t", "s", "e", "t").scanRight("")((a, b) => b + a),
+      List("test", "tes", "te", "t", "")
+    )
+  ) { case (stream, ans) =>
+    assertEquals[List[String], List[String]](stream.toList, ans)
+  }
 }

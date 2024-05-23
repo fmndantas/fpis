@@ -137,6 +137,14 @@ sealed trait Stream[+A] {
         case Cons(h, t) => Some((s, t()))
         case _          => None
     }
+
+  // TODO: this can be made of another functions?
+  def scanRight[B](z: => B)(f: (A, => B) => B): Stream[B] =
+    foldRight(Stream(z)) { (a, b) =>
+      lazy val evaluatedB = b
+      val Cons(h, t) = evaluatedB : @unchecked
+      Stream.cons(f(a, h()), evaluatedB)
+    }
 }
 
 case object Empty extends Stream[Nothing]
