@@ -203,4 +203,17 @@ class StreamSpec extends munit.FunSuite with MultipleCases {
   ) { case (streamA, streamB, ans) =>
     assertEquals(streamA.startsWith(streamB), ans)
   }
+
+  cases(
+    "tails returns stream of stream suffixes"
+  )(
+    (Stream.empty[Int], List.empty[List[Int]]),
+    (Stream(1), List(List(1))),
+    (Stream(1, 2, 3), List(List(1, 2, 3), List(2, 3), List(3)))
+  ) { case (stream, ans) =>
+    assertEquals[List[List[Int]], List[List[Int]]](
+      stream.tails.toList.map(_.toList),
+      ans
+    )
+  }
 }
