@@ -6,7 +6,9 @@ sealed trait List[+A] {
     this match
       case Cons(h, t) => t.foldLeft(f(z, h))(f)
       case _ => z
-    
+
+  def reverse: List[A] =
+    foldLeft(List.empty[A])((b, a) => List.cons(a, b))
 }
 case object Nil extends List[Nothing]
 case class Cons[+A](h: A, t: List[A]) extends List[A]
@@ -17,4 +19,6 @@ object List {
     else Cons(as.head, apply(as.tail*))
 
   def empty[A]: List[A] = Nil
+
+  def cons[A](h: A, t: List[A]): List[A] = Cons(h, t)
 }

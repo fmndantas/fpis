@@ -14,4 +14,8 @@ class ListSpec extends MultipleCases {
   ) { case (real, expected) =>
     assertEquals[List[Int], List[Int]](real, expected)
   }
+
+  test("reverse") {
+    assertEquals(List(1, 2, 3, 4, 5).reverse, List(5, 4, 3, 2, 1))
+  }
 }
