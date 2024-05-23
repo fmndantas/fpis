@@ -77,4 +77,13 @@ class StreamLazinessSpec extends munit.FunSuite {
     )
     s1.zipWith(s2)
   }
+
+  test("startsWith is lazy") {
+    val s1 = Stream.cons(1, Stream.empty)
+    val s2 = Stream.cons(
+      2,
+      Stream.cons({ assert(false, "startsWith is not lazy"); 2 }, Stream.empty)
+    )
+    s2.startsWith(s1)
+  }
 }

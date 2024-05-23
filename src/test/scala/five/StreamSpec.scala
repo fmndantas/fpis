@@ -197,6 +197,7 @@ class StreamSpec extends munit.FunSuite with MultipleCases {
     (Stream.empty[Int], Stream(10), false),
     (Stream(10), Stream.empty[Int], true),
     (Stream.ones, Stream(1), true),
+    (Stream.ones, Stream(2), false),
     (Stream("a", "b"), Stream("a"), true),
     (Stream("t", "b"), Stream("a"), false)
   ) { case (streamA, streamB, ans) =>
