@@ -71,7 +71,10 @@ class StreamLazinessSpec extends munit.FunSuite {
 
   test("zipWith is lazy") {
     val s1 = Stream.empty[Int]
-    val s2 = Stream.cons({assert(false, "zipWith is not lazy"); 1}, Stream.empty[Int])
+    val s2 = Stream.cons(
+      { assert(false, "zipWith is not lazy"); 1 },
+      Stream.empty[Int]
+    )
     s1.zipWith(s2)
   }
 }
