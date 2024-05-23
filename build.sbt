@@ -16,7 +16,5 @@ scalacOptions ++= Seq(
   "-Wunused:imports",
   "-Wunused:privates",
   "-Wunused:params",
-  "-Wunused:locals",
-  "-Xlint:unused",
-  "-explaintypes"
+  "-Wunused:locals"
 )
