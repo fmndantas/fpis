@@ -30,7 +30,11 @@ class ListSpec extends MultipleCases {
   cases("foldRight")(
     (List(10.0, 5.0).foldRight(2.0)(_ / _), 4.0),
     (List(10.0, 5.0).foldRight(2.0)((a, b) => b / a), 0.04)
-  ) { case(result, ans) =>
+  ) { case (result, ans) =>
     assertEquals(result, ans)
+  }
+
+  test("append") {
+    assertEquals(List(1, 2, 3).append(4), List(1, 2, 3, 4))
   }
 }
