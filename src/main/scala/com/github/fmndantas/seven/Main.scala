@@ -5,7 +5,6 @@ import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.Executors
 import java.util.concurrent.Callable
-import java.util.concurrent.TimeoutException
 
 object Seven extends App {
   type Par[A] = ExecutorService => Future[A]
@@ -13,29 +12,13 @@ object Seven extends App {
   def run[A](es: ExecutorService)(a: Par[A]): Future[A] = a(es)
 
   def unit[A](a: A): Par[A] =
-    es => UnitTimedFuture(a)
+    es => UnitFuture(a)
 
-  // case class UnitFuture[A](get: A) extends Future[A] {
-  //   def cancel(foo: Boolean) = false
-  //   def get(timeout: Long, timeUnit: TimeUnit) = get
-  //   def isCancelled(): Boolean = false
-  //   def isDone(): Boolean = true
-  // }
-
-  class UnitTimedFuture[A](innerGet: => A) extends Future[A] {
-    private lazy val lazyInnerGet = innerGet
-
-    def cancel(foo: Boolean) = false
-
-    def get() = lazyInnerGet
-
-    def get(timeout: Long, timeUnit: TimeUnit) =
-      val (a, t) = medirTempoTranscorrido(lazyInnerGet)
-      if t > timeout then throw TimeoutException() else a
-
-    def isCancelled(): Boolean = false
-
-    def isDone(): Boolean = true
+  case class UnitFuture[A](get: A) extends Future[A] {
+    def isDone = true
+    def get(timeout: Long, units: TimeUnit) = get
+    def isCancelled = false
+    def cancel(evenIfRunning: Boolean): Boolean = false
   }
 
   def map2[A, B, C](a: Par[A], b: Par[B])(f: (A, B) => C): Par[C] =
@@ -45,9 +28,27 @@ object Seven extends App {
       unit(f(fa.get, fb.get))(es)
     }
 
-  extension [A](f: Future[A])
-    def temporizar(timeoutNanos: Long): FutureTemporizado[A] =
-      FutureTemporizado(timeoutNanos, f)
+  def map2b[A, B, C](a: Par[A], b: Par[B])(f: (A, B) => C): Par[C] =
+    es =>
+      new Future[C] {
+        def cancel(evenIfRunning: Boolean) = ???
+
+        def get(): C = ???
+
+        def get(timeout: Long, timeUnit: TimeUnit): C =
+          val fa = a(es)
+          val fb = b(es)
+          val timeoutNanos = TimeUnit.NANOSECONDS.convert(timeout, timeUnit)
+          val (ra, t) = medirTempoTranscorrido {
+            fa.get(timeoutNanos, TimeUnit.NANOSECONDS)
+          }
+          val rb = fb.get(timeoutNanos - t, TimeUnit.NANOSECONDS)
+          f(ra, rb)
+
+        def isCancelled(): Boolean = ???
+
+        def isDone(): Boolean = ???
+      }
 
   def medirTempoTranscorrido[A](thunk: => A): (A, Long) =
     val inicio = System.nanoTime
@@ -55,50 +56,28 @@ object Seven extends App {
     val fim = System.nanoTime
     (resultado, fim - inicio)
 
-  case class FutureTemporizado[A](
-      timeoutNanossegundos: Long,
-      future: Future[A]
-  ) {
-    def flatMap[B](f: (A, Long) => FutureTemporizado[B]): FutureTemporizado[B] =
-      val (a, t) = medirTempoTranscorrido {
-        future.get(timeoutNanossegundos, TimeUnit.NANOSECONDS)
-      }
-      f(a, timeoutNanossegundos - t)
-
-    def map[B](f: (A, Long) => B): FutureTemporizado[B] =
-      val (a, t) = medirTempoTranscorrido {
-        future.get(timeoutNanossegundos, TimeUnit.NANOSECONDS)
-      }
-      val tempoRestante = timeoutNanossegundos - t
-      val b = f(a, tempoRestante)
-      UnitTimedFuture(b).temporizar(tempoRestante)
-
-    def converterParaFuture: Future[A] = this._2
-  }
-
-  def map2[A, B, C](a: Par[A], b: Par[B])(f: (A, B) => C)(
-      timeoutMilissegundos: Long = 1000
-  ): Par[C] =
-    es =>
-      {
-        for {
-          (ra, tra) <- a(es).temporizar(1000 * timeoutMilissegundos)
-          (rb, trb) <- b(es).temporizar(tra)
-        } yield f(ra, rb)
-      }.converterParaFuture
-
   def fork[A](a: => Par[A]): Par[A] =
     es =>
       es.submit(new Callable[A] {
         def call = a(es).get
       })
 
-  val es = Executors.newFixedThreadPool(4)
+  val es = Executors.newFixedThreadPool(10)
 
-  val p = map2(
-    unit({ Thread.sleep(1000); 15 }),
-    unit({ Thread.sleep(1000); 15 })
-  )(_ + _)(1)
-  val resultado = run(es)(p)
-  require(resultado.get == 30)
+  val f1 = es.submit(new Callable[Int] {
+    def call =
+      Thread.sleep(2000)
+      15
+  })
+  val f2 = es.submit(new Callable[Int] {
+    def call =
+      Thread.sleep(2000)
+      10
+  })
+  val p1: Par[Int] = es => f1
+  val p2: Par[Int] = es => f2
+  val p = map2b(p1, p2)(_ + _)
+  val f = run(es)(p)
+  val r = f.get(0, TimeUnit.MILLISECONDS)
+  println(r)
 }
