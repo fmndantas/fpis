@@ -61,8 +61,15 @@ object Seven extends App {
 
   def fork[A](a: => Par[A]): Par[A] =
     es =>
+      // println(s"1, $es")
       es.submit(new Callable[A] {
-        def call = a(es).get
+        // println(s"2, $es")
+        def call = {
+          // println(s"3, $es")
+          val r = a(es).get
+          // println(s"4, r = $r")
+          r
+        }
       })
 
   def sequence[A](ps: Seq[Par[A]]): Par[Seq[A]] =
@@ -140,6 +147,14 @@ object Seven extends App {
     val p = contar2[String](paragrafos, contarPalavras)
     val f = p(es)
     println(f.get)
+  }
+
+  {
+    // NOTE: cada fork ocupa uma thread
+    // logo, vai ocorrer deadlock se N+1 
+    // forks forem executados simultaneamente 
+    // em um pool de threads com N threads
+    fork(fork(_ => UnitFuture(10)))(es).get(1, TimeUnit.SECONDS)
   }
 
   es.shutdown()
