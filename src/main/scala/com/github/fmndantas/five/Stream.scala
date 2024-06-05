@@ -10,7 +10,7 @@ sealed trait Stream[+A] {
   // }
 
   // NOTE: v2
-  def headOption: Option[A] = foldRight(None)((a, b) => Some(a))
+  def headOption: Option[A] = foldRight[Option[A]](None)((a, b) => Some(a))
 
   def toList: List[A] = this match {
     case Cons[A](h, t) => List(h()) ++ t().toList

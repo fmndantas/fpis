@@ -9,7 +9,7 @@ import scala.util.Try
 import scala.util.Success
 import scala.util.Failure
 
-object Seven extends App {
+object Blocking extends App {
   case class UnitFuture[A](get: A) extends Future[A] {
     def isDone = true
     def get(timeout: Long, units: TimeUnit) = get
