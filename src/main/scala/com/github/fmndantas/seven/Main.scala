@@ -5,6 +5,9 @@ import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.Executors
 import java.util.concurrent.Callable
+import scala.util.Try
+import scala.util.Success
+import scala.util.Failure
 
 object Seven extends App {
   case class UnitFuture[A](get: A) extends Future[A] {
@@ -27,7 +30,7 @@ object Seven extends App {
       unit(f(fa.get, fb.get))(es)
     }
 
-  // FIX: com timeout
+  // NOTE: com timeout
   def map2b[A, B, C](a: Par[A], b: Par[B])(f: (A, B) => C): Par[C] =
     es =>
       new Future[C] {
@@ -59,10 +62,7 @@ object Seven extends App {
   def fork[A](a: => Par[A]): Par[A] =
     es =>
       es.submit(new Callable[A] {
-        def call =
-          // FIX: não passa da próxima linha se usar unit()
-          val f = a(es)
-          f.get
+        def call = a(es).get
       })
 
   def sequence[A](ps: Seq[Par[A]]): Par[Seq[A]] =
@@ -70,7 +70,6 @@ object Seven extends App {
 
   val es = Executors.newFixedThreadPool(5)
 
-  /*
   {
     val f1 = es.submit(new Callable[Int] {
       def call =
@@ -88,9 +87,7 @@ object Seven extends App {
     val f = run(es)(p)
     println(f.get(10, TimeUnit.SECONDS))
   }
-   */
 
-  /*
   {
     def makeFuture = es.submit(new Callable[Int] {
       def call = 42
@@ -101,19 +98,12 @@ object Seven extends App {
     val f = run(es)(par)
     println(f.get)
   }
-   */
 
-  /*
   {
-    val pu = unit(10)
-    println(s"pu(es).get = ${pu(es).get}")
+    def g(a: Int) = fork(es => UnitFuture(a + 1))
 
-    // def g(a: Int) = fork(es => {
-    //   println(s"g.es = $es")
-    //   UnitFuture(a + 1)
-    // })
-
-    def g(a: Int) = fork(unit(a + 1))
+    // FIX: usar
+    // def g(a: Int) = fork(unit(a + 1))
 
     val p = g(10)
     val f = p(es)
@@ -126,7 +116,6 @@ object Seven extends App {
         e.printStackTrace()
     }
   }
-   */
 
   {
     def contar[A](xs: Seq[A], f: (A => Int)): Par[Int] =
@@ -146,9 +135,8 @@ object Seven extends App {
       "foo bar zas",
       "ok ok ok ok ok ok ok ok ok ok ok"
     )
-    def contarPalavras(paragrafo: String) =
-      paragrafo.split(" ").size
-       
+    def contarPalavras(paragrafo: String) = paragrafo.split(" ").size
+
     val p = contar2[String](paragrafos, contarPalavras)
     val f = p(es)
     println(f.get)
