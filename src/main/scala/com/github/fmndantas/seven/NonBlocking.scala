@@ -29,6 +29,14 @@ object NonBlocking {
           cb(a)
       }
 
+  def unitComErro[A](a: A): Par[A] =
+    es =>
+      new Future[A] {
+        def apply(cb: A => Unit): Unit =
+          throw new RuntimeException("Erro proposital")
+          cb(a)
+      }
+
   def fork[A](a: => Par[A]): Par[A] =
     es =>
       new Future[A] {
@@ -67,7 +75,7 @@ object NonBlocking {
   //     if suffix.size == 0 then prefix
   //     else loop(fork(map2(prefix, suffix.head)(_ :+ _)), suffix.tail)
   //   loop(unit(List.empty), ps)
-  
+
   // NOTE: lento porque :+ (appended) é O(n) amortizado
   // def sequence[A](ps: Seq[Par[A]]): Par[Seq[A]] =
   //   ps.foldLeft(unit(Seq.empty))((a, b) => fork(map2(a, b)(_ :+ _)))

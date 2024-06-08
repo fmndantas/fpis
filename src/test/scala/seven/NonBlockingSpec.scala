@@ -48,4 +48,9 @@ class NonBlockingSpec extends munit.FunSuite {
     val p = parMap(Vector.range(0, n))(somarUm)
     assertEquals(run(es)(p), Vector.range(0, n).map(_ + 1))
   }
+
+  test("run should not swallow exception".only) {
+    val p = fork(fork(fork(unitComErro(10))))
+    assertEquals(run(es)(p), 10)
+  }
 }
