@@ -1,19 +1,22 @@
 package com.github.fmndantas.seven
 
+import java.util.concurrent.Callable
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.atomic.AtomicReference
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.Callable
+import scala.util.Try
 
 object NonBlocking {
   sealed trait Future[A] {
-    private[seven] def apply(k: A => Unit): Unit
+    private[seven] def apply(cb: Try[A] => Unit): Unit
   }
 
   type Par[A] = ExecutorService => Future[A]
 
-  def run[A](es: ExecutorService)(p: Par[A]): A =
-    val ref = new AtomicReference[A]
+  private type Callback[A] = Try[A] => Unit
+
+  def run[A](es: ExecutorService)(p: Par[A]): Try[A] =
+    val ref = new AtomicReference[Try[A]]
     val latch = new CountDownLatch(1)
     p(es) { v =>
       ref.set(v)
@@ -25,22 +28,20 @@ object NonBlocking {
   def unit[A](a: A): Par[A] =
     es =>
       new Future[A] {
-        def apply(cb: A => Unit): Unit =
-          cb(a)
+        def apply(cb: Callback[A]): Unit = cb(Try(a))
       }
 
   def unitComErro[A](a: A): Par[A] =
     es =>
       new Future[A] {
-        def apply(cb: A => Unit): Unit =
-          throw new RuntimeException("Erro proposital")
-          cb(a)
+        def apply(cb: Callback[A]): Unit =
+          cb(Try(throw new RuntimeException("Erro proposital")))
       }
 
   def fork[A](a: => Par[A]): Par[A] =
     es =>
       new Future[A] {
-        def apply(cb: A => Unit): Unit =
+        def apply(cb: Callback[A]): Unit =
           eval(es)(a(es)(cb))
       }
 
@@ -52,18 +53,28 @@ object NonBlocking {
   def map2[A, B, C](a: Par[A], b: Par[B])(f: (A, B) => C): Par[C] =
     es =>
       new Future[C] {
-        def apply(cb: C => Unit): Unit =
-          var ra: Option[A] = None
-          var rb: Option[B] = None
-          val sync = Actor[Either[A, B]](es) {
-            case Left(va) =>
+        def apply(cb: Callback[C]): Unit =
+          var ra: Option[Try[A]] = None
+          var rb: Option[Try[B]] = None
+          val sync = Actor[Either[Try[A], Try[B]]](es) {
+            case Left(ta) =>
               rb match
-                case None     => ra = Some(va)
-                case Some(vb) => eval(es)(cb(f(va, vb)))
-            case Right(vb) =>
+                case None => ra = Some(ta)
+                case Some(tb) =>
+                  val t = for {
+                    va <- ta
+                    vb <- tb
+                  } yield f(va, vb)
+                  eval(es)(cb(t))
+            case Right(tb) =>
               ra match
-                case None     => rb = Some(vb)
-                case Some(va) => eval(es)(cb(f(va, vb)))
+                case None => rb = Some(tb)
+                case Some(ta) =>
+                  val t = for {
+                    va <- ta
+                    vb <- tb
+                  } yield f(va, vb)
+                  eval(es)(cb(t))
           }
           a(es)(va => sync ! Left(va))
           b(es)(vb => sync ! Right(vb))
