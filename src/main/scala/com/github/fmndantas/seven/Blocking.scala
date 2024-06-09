@@ -30,7 +30,7 @@ object Blocking extends App {
       unit(f(fa.get, fb.get))(es)
     }
 
-  // NOTE: com timeout
+  // NOTE: map with timeout
   def map2b[A, B, C](a: Par[A], b: Par[B])(f: (A, B) => C): Par[C] =
     es =>
       new Future[C] {
@@ -42,7 +42,7 @@ object Blocking extends App {
           val fa = a(es)
           val fb = b(es)
           val timeoutNanos = TimeUnit.NANOSECONDS.convert(timeout, timeUnit)
-          val (ra, t) = medirTempoTranscorrido {
+          val (ra, t) = measureElapsedTime {
             fa.get(timeoutNanos, TimeUnit.NANOSECONDS)
           }
           val rb = fb.get(timeoutNanos - t, TimeUnit.NANOSECONDS)
@@ -53,7 +53,7 @@ object Blocking extends App {
         def isDone(): Boolean = ???
       }
 
-  def medirTempoTranscorrido[A](thunk: => A): (A, Long) =
+  def measureElapsedTime[A](thunk: => A): (A, Long) =
     val inicio = System.nanoTime
     val resultado = thunk
     val fim = System.nanoTime
@@ -109,7 +109,7 @@ object Blocking extends App {
   {
     def g(a: Int) = fork(es => UnitFuture(a + 1))
 
-    // FIX: usar
+    // FIX: use this
     // def g(a: Int) = fork(unit(a + 1))
 
     val p = g(10)
@@ -125,35 +125,34 @@ object Blocking extends App {
   }
 
   {
-    def contar[A](xs: Seq[A], f: (A => Int)): Par[Int] =
+    def count[A](xs: Seq[A], f: (A => Int)): Par[Int] =
       val g = (a: A) => fork(_ => UnitFuture((f(a))))
       xs.map(g)
         .foldLeft[Par[Int]]((es: ExecutorService) => UnitFuture(0))(
           map2b(_, _)(_ + _)
         )
 
-    def contar2[A](xs: Seq[A], f: (A => Int)): Par[Int] =
+    def count2[A](xs: Seq[A], f: (A => Int)): Par[Int] =
       val g = (a: A) => fork(_ => UnitFuture((f(a))))
       map2b(sequence(xs.map(g)), _ => UnitFuture(()))((a, _) => a.sum)
 
-    val paragrafos = Seq(
+    val paragraphs = Seq(
       "fernando matheus do nascimento dantas",
       "novo parágrafo",
       "foo bar zas",
       "ok ok ok ok ok ok ok ok ok ok ok"
     )
-    def contarPalavras(paragrafo: String) = paragrafo.split(" ").size
+    def countWords(paragrafo: String) = paragrafo.split(" ").size
 
-    val p = contar2[String](paragrafos, contarPalavras)
+    val p = count2[String](paragraphs, countWords)
     val f = p(es)
     println(f.get)
   }
 
   {
-    // NOTE: cada fork ocupa uma thread
-    // logo, vai ocorrer deadlock se N+1 
-    // forks forem executados simultaneamente 
-    // em um pool de threads com N threads
+    // NOTE: each fork occupies one thread
+    // so, a deadlock will occur if n+1 simultaneous
+    // forks are executed in a n thread-pool
     fork(fork(_ => UnitFuture(10)))(es).get(1, TimeUnit.SECONDS)
   }
 

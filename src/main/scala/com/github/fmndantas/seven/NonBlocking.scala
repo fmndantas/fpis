@@ -31,11 +31,11 @@ object NonBlocking {
         def apply(cb: Callback[A]): Unit = cb(Try(a))
       }
 
-  def unitComErro[A](a: A): Par[A] =
+  def unitWithError[A](a: A): Par[A] =
     es =>
       new Future[A] {
         def apply(cb: Callback[A]): Unit =
-          cb(Try(throw new RuntimeException("Erro proposital")))
+          cb(Try(throw new RuntimeException("Proposital failure")))
       }
 
   def fork[A](a: => Par[A]): Par[A] =
@@ -87,11 +87,11 @@ object NonBlocking {
   //     else loop(fork(map2(prefix, suffix.head)(_ :+ _)), suffix.tail)
   //   loop(unit(List.empty), ps)
 
-  // NOTE: lento porque :+ (appended) é O(n) amortizado
+  // NOTE: slow because :+ (appended) is O(n) amortized
   // def sequence[A](ps: Seq[Par[A]]): Par[Seq[A]] =
   //   ps.foldLeft(unit(Seq.empty))((a, b) => fork(map2(a, b)(_ :+ _)))
 
-  // NOTE: rápido porque +: (prepended) é O(1)
+  // NOTE: fast because +: (prepended) is O(1)
   def sequence[A](ps: Seq[Par[A]]): Par[Seq[A]] =
     ps.foldRight(unit(Seq.empty))((a, b) => fork(map2(a, b)(_ +: _)))
 

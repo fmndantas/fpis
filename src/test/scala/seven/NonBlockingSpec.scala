@@ -56,25 +56,32 @@ class NonBlockingSpec extends munit.FunSuite {
 
   test("parMap with Vector") {
     val n = 100000
-    def somarUm(v: Int) = v + 1
-    val p = parMap(Vector.range(0, n))(somarUm)
+    def sumOne(v: Int) = v + 1
+    val p = parMap(Vector.range(0, n))(sumOne)
     val r = run(es)(p)
     assert(r.isSuccess)
     assertEquals(r.get, Vector.range(0, n).map(_ + 1))
   }
 
   test("run should not swallow exceptions") {
-    val p = unitComErro(10)
+    val p = unitWithError(10)
     val r = run(es)(p)
     assert(r.isFailure)
   }
 
   test("run should not swallow exceptions") {
-    val p0 = fork(fork(unitComErro(10)))
+    val p0 = fork(fork(unitWithError(10)))
     val p1 = fork(unit(10))
     val p2 = map2(p0, p1)(_ + _)
     val p3 = map2(p2, p0)(_ + _)
     val r = run(es)(p3)
+    assert(r.isFailure)
+  }
+
+  test("run should not swallow exceptions") {
+    val n = 100
+    val ps = List.range(0, n).map(unit) :+ unitWithError(10)
+    val r = run(es)(sequence(ps))
     assert(r.isFailure)
   }
 }
