@@ -7,13 +7,13 @@ import java.util.concurrent.atomic.AtomicReference
 import scala.util.Try
 
 object NonBlocking {
-  sealed trait Future[A] {
+  trait Future[A] {
     private[seven] def apply(cb: Try[A] => Unit): Unit
   }
 
   type Par[A] = ExecutorService => Future[A]
 
-  private type Callback[A] = Try[A] => Unit
+  type Callback[A] = Try[A] => Unit
 
   def run[A](es: ExecutorService)(p: Par[A]): Try[A] =
     val ref = new AtomicReference[Try[A]]
@@ -29,13 +29,6 @@ object NonBlocking {
     es =>
       new Future[A] {
         def apply(cb: Callback[A]): Unit = cb(Try(a))
-      }
-
-  def unitWithError[A](a: A): Par[A] =
-    es =>
-      new Future[A] {
-        def apply(cb: Callback[A]): Unit =
-          cb(Try(throw new RuntimeException("Proposital failure")))
       }
 
   def fork[A](a: => Par[A]): Par[A] =
@@ -98,4 +91,20 @@ object NonBlocking {
   def parMap[A, B](ys: Seq[A])(f: A => B): Par[Seq[B]] =
     val asyncF = (a: A) => fork(unit(f(a)))
     sequence(ys.map(asyncF))
+
+  def flatMap[A, B](p: Par[A])(f: A => Par[B]): Par[B] =
+    es =>
+      new Future[B] {
+        def apply(cb: Callback[B]) =
+          p(es)(_.map(r0 => eval(es)(f(r0)(es)(cb))))
+      }
+
+  def map[A, B](p: Par[A])(f: A => B): Par[B] =
+    map2(p, unit(()))((a, _) => f(a))
+
+  def choice[A](cond: Par[Boolean])(pt: Par[A], pf: Par[A]): Par[A] =
+    choiceN(map(cond)(Map(true -> 0, false -> 1)))(IndexedSeq(pt, pf))
+
+  def choiceN[A](n: Par[Int])(choices: IndexedSeq[Par[A]]): Par[A] =
+    flatMap(n)(nr => choices(nr))
 }
