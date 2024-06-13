@@ -92,19 +92,25 @@ object NonBlocking {
     val asyncF = (a: A) => fork(unit(f(a)))
     sequence(ys.map(asyncF))
 
+  def map[A, B](p: Par[A])(f: A => B): Par[B] =
+    map2(p, unit(()))((a, _) => f(a))
+
   def flatMap[A, B](p: Par[A])(f: A => Par[B]): Par[B] =
     es =>
       new Future[B] {
         def apply(cb: Callback[B]) =
-          p(es)(_.map(r0 => eval(es)(f(r0)(es)(cb))))
+          eval(es)(p(es)(_ map (r0 => eval(es)(f(r0)(es)(cb)))))
       }
-
-  def map[A, B](p: Par[A])(f: A => B): Par[B] =
-    map2(p, unit(()))((a, _) => f(a))
 
   def choice[A](cond: Par[Boolean])(pt: Par[A], pf: Par[A]): Par[A] =
     choiceN(map(cond)(Map(true -> 0, false -> 1)))(IndexedSeq(pt, pf))
 
   def choiceN[A](n: Par[Int])(choices: IndexedSeq[Par[A]]): Par[A] =
     flatMap(n)(nr => choices(nr))
+
+  def choiceMap[K, V](key: Par[K])(choices: Map[K, Par[V]]): Par[V] =
+    ???
+
+  def chooser[A, B](pa: Par[A])(choices: A => Par[B]): Par[B] =
+    ???
 }

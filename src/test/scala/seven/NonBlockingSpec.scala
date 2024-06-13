@@ -45,7 +45,7 @@ class NonBlockingSpec extends munit.FunSuite {
   }
 
   test("sequence") {
-    val n = 100
+    val n = 100000
     val ps = List.range(0, n).map(sut.unit)
     val r = sut.run(es)(sut.sequence(ps))
     assert(r.isSuccess)
@@ -54,8 +54,8 @@ class NonBlockingSpec extends munit.FunSuite {
 
   test("parMap with List") {
     val n = 100000
-    def somarUm(v: Int) = v + 1
-    val p = sut.parMap(List.range(0, n))(somarUm)
+    def sumOne(v: Int) = v + 1
+    val p = sut.parMap(List.range(0, n))(sumOne)
     val r = sut.run(es)(p)
     assert(r.isSuccess)
     assertEquals(r.get, List.range(0, n).map(_ + 1))
@@ -113,7 +113,16 @@ class NonBlockingSpec extends munit.FunSuite {
 
   test("choiceN should run the operation chosen by par") {
     val p = sut.choiceN(sut.unit(2))((0 to 10).map(sut.unit))
-    val Success(r) = sut.run(es)(p)
-    assertEquals(r, 2)
+    val r = sut.run(es)(p)
+    assert(r.isSuccess)
+    val Success(n) = r
+    assertEquals(n, 2)
+  }
+
+  test("flatMap stress test") {
+    var pi = sut.unit(0)
+    val n = 100000
+    (1 to n).map(i => pi = sut.flatMap(pi)(_ => sut.unit(i)))
+    assertEquals(sut.run(es)(pi).get, n)
   }
 }
