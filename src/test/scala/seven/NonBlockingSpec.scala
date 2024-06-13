@@ -25,7 +25,7 @@ class NonBlockingSpec extends munit.FunSuite {
     assertEquals(r.get, 10)
   }
 
-  test("large amount of forks") {
+  test("fork stress test") {
     def f(i: Int): Par[Int] =
       if i == 500000 then sut.unit(42)
       else sut.fork(f(i + 1))

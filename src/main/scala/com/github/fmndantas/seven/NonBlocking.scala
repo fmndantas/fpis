@@ -95,12 +95,14 @@ object NonBlocking {
   def map[A, B](p: Par[A])(f: A => B): Par[B] =
     map2(p, unit(()))((a, _) => f(a))
 
-  def flatMap[A, B](p: Par[A])(f: A => Par[B]): Par[B] =
-    es =>
-      new Future[B] {
-        def apply(cb: Callback[B]) =
-          eval(es)(p(es)(_ map (r0 => eval(es)(f(r0)(es)(cb)))))
-      }
+  // NOTE: v1
+  // def flatMap[A, B](p: Par[A])(f: A => Par[B]): Par[B] =
+  //   es =>
+  //     new Future[B] {
+  //       def apply(cb: Callback[B]) =
+  //         // TODO: investigate why both evals are necessary
+  //         eval(es)(p(es)(_ map (r0 => eval(es)(f(r0)(es)(cb)))))
+  //     }
 
   def choice[A](cond: Par[Boolean])(pt: Par[A], pf: Par[A]): Par[A] =
     choiceN(map(cond)(Map(true -> 0, false -> 1)))(IndexedSeq(pt, pf))
@@ -108,9 +110,18 @@ object NonBlocking {
   def choiceN[A](n: Par[Int])(choices: IndexedSeq[Par[A]]): Par[A] =
     flatMap(n)(nr => choices(nr))
 
-  def choiceMap[K, V](key: Par[K])(choices: Map[K, Par[V]]): Par[V] =
-    ???
+  def id[A](v: A) = v
 
-  def chooser[A, B](pa: Par[A])(choices: A => Par[B]): Par[B] =
-    ???
+  // NOTE: in terms of flatMap
+  // def join[A](p: Par[Par[A]]): Par[A] = flatMap(p)(id)
+
+  def join[A](p: Par[Par[A]]): Par[A] =
+    es =>
+      new Future[A] {
+        def apply(cb: Callback[A]) =
+          eval(es)(p(es)(_ map (_(es)(cb))))
+      }
+
+  // NOTE: v2
+  def flatMap[A, B](p: Par[A])(f: A => Par[B]): Par[B] = join(map(p)(f))
 }
