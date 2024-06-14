@@ -36,8 +36,10 @@ class SixSpec extends MultipleCases {
     "getNonNegativeIntLessThan returns non-negative integer less than upper limit"
   ) {
     val s = State.sequence(List.fill(100)(sut.getNonNegativeIntLessThan(100)))
-    val (r, _) = s.run(SimpleRNG(42))
+    val s0 = SimpleRNG(42)
+    val (r, sf) = s.run(s0)
     assert(r.max < 100)
+    assert(sf != s0) 
   }
 
   test("How to use State to generate random integers") {
