@@ -38,7 +38,7 @@ object NonBlocking {
           eval(es)(a(es)(cb))
       }
 
-  def eval(es: ExecutorService)(r: => Unit): Unit =
+  private def eval(es: ExecutorService)(r: => Unit): Unit =
     es.submit(new Callable[Unit] {
       def call = r
     })
@@ -96,13 +96,13 @@ object NonBlocking {
     map2(p, unit(()))((a, _) => f(a))
 
   // NOTE: v1
-  // def flatMap[A, B](p: Par[A])(f: A => Par[B]): Par[B] =
-  //   es =>
-  //     new Future[B] {
-  //       def apply(cb: Callback[B]) =
-  //         // TODO: investigate why both evals are necessary
-  //         eval(es)(p(es)(_ map (r0 => eval(es)(f(r0)(es)(cb)))))
-  //     }
+  def flatMap[A, B](p: Par[A])(f: A => Par[B]): Par[B] =
+    es =>
+      new Future[B] {
+        def apply(cb: Callback[B]) =
+          // TODO: investigate why both forks are necessary
+          fork(p)(es)(_ map (r0 => fork(f(r0))(es)(cb)))
+      }
 
   def choice[A](cond: Par[Boolean])(pt: Par[A], pf: Par[A]): Par[A] =
     choiceN(map(cond)(Map(true -> 0, false -> 1)))(IndexedSeq(pt, pf))
@@ -115,13 +115,13 @@ object NonBlocking {
   // NOTE: in terms of flatMap
   // def join[A](p: Par[Par[A]]): Par[A] = flatMap(p)(id)
 
-  def join[A](p: Par[Par[A]]): Par[A] =
-    es =>
-      new Future[A] {
-        def apply(cb: Callback[A]) =
-          eval(es)(p(es)(_ map (_(es)(cb))))
-      }
+  // def join[A](p: Par[Par[A]]): Par[A] =
+  //   es =>
+  //     new Future[A] {
+  //       def apply(cb: Callback[A]) =
+  //         fork(p)(es)(_ map (_(es)(cb)))
+  //     }
 
   // NOTE: v2
-  def flatMap[A, B](p: Par[A])(f: A => Par[B]): Par[B] = join(map(p)(f))
+  // def flatMap[A, B](p: Par[A])(f: A => Par[B]): Par[B] = join(map(p)(f))
 }
