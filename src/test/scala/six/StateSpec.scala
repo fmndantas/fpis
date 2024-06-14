@@ -39,7 +39,8 @@ class StateSpec extends munit.FunSuite {
     val s = State.sequence[Int, RNG](
       List(State.unit(42), State.unit(43), State.unit(44))
     )
-    val (r, _) = s.run(SimpleRNG(42))
+    val (r, v) = s.run(SimpleRNG(42))
     assertEquals(r, List(42, 43, 44))
+    assertEquals(v, SimpleRNG(42))
   }
 }

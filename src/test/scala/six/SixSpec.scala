@@ -3,21 +3,20 @@ import com.github.fmndantas.six.SimpleRNG
 import com.github.fmndantas.six.Six
 import com.github.fmndantas.six.State
 
-class SixSpec extends munit.FunSuite {
+class SixSpec extends MultipleCases {
   object sut extends Six
-
-  def mockRand[A](desiredValue: A)(rng: RNG) = (desiredValue, rng)
 
   test("map2 joins two rands") {
     val rng = SimpleRNG(42)
-    val (result1, _) = mockRand(42)(rng)
-    val (result2, _) = mockRand(42)(rng)
-    val (joinedResult, _) = sut.map2(mockRand(42), mockRand(42))(_ + _)(rng)
+    val (result1, _) = Utils.mockRand(42)(rng)
+    val (result2, _) = Utils.mockRand(42)(rng)
+    val (joinedResult, _) =
+      sut.map2(Utils.mockRand(42), Utils.mockRand(42))(_ + _)(rng)
     assertEquals(joinedResult, result1 + result2)
   }
 
   test("sequence transforms list of transitions into a single transition") {
-    val rands = List(mockRand(1), mockRand(2), mockRand(3))
+    val rands = List(Utils.mockRand(1), Utils.mockRand(2), Utils.mockRand(3))
     val transition = sut.sequence(rands)
     val rng = SimpleRNG(42)
     val (resultingList, resultingRng) = transition(rng)
@@ -31,6 +30,14 @@ class SixSpec extends munit.FunSuite {
     val rng = SimpleRNG(42)
     val (result, _) = sut.nonNegativeLessThan(10)(rng)
     assert(result < 10)
+  }
+
+  test(
+    "getNonNegativeIntLessThan returns non-negative integer less than upper limit"
+  ) {
+    val s = State.sequence(List.fill(100)(sut.getNonNegativeIntLessThan(100)))
+    val (r, _) = s.run(SimpleRNG(42))
+    assert(r.max < 100)
   }
 
   test("How to use State to generate random integers") {

@@ -53,4 +53,14 @@ trait Six {
   }
 
   def getNextInt: State[RNG, Int] = State(_.nextInt)
+
+  def getNonNegativeInt: State[RNG, Int] =
+    getNextInt.map(a => if (a < 0) -(a + 1) else a)
+
+  def getNonNegativeIntLessThan(n: Int): State[RNG, Int] =
+    getNonNegativeInt.flatMap { i =>
+      val mod = i % n
+      if i + n - 1 - mod >= 0 then State.unit(mod)
+      else getNonNegativeIntLessThan(n)
+    }
 }
