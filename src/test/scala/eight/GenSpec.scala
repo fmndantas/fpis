@@ -25,4 +25,13 @@ class GenSpec extends munit.FunSuite {
     assertEquals(r.size, n)
     r.foreach(v => assert(10 <= v && v < 20, s"v = $v"))
   }
+
+  test("tuple of ints") {
+    val g1 =
+      Gen.listOfN(2, Gen.choose(1000, 2000)).map { case a :: b :: _ => (a, b) }
+    val ((a, b), _) = g1.sample.run(rng)
+    println((a, b))
+    assert(1000 <= a && a < 2000)
+    assert(1000 <= b && b < 2000)
+  }
 }

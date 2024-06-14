@@ -5,7 +5,8 @@ import com.github.fmndantas.six.State
 import com.github.fmndantas.six.Six
 import com.github.fmndantas.eight.putNBetweenLowerAndUpperIfNIsLessThanLower
 
-case class Gen[A](sample: State[RNG, A])
+case class Gen[A](sample: State[RNG, A]):
+  def map[B](f: A => B): Gen[B] = Gen(this.sample.map(f))
 
 object six extends Six
 
@@ -31,3 +32,4 @@ object Gen:
 
   def listOfN[A](n: Int, g: Gen[A]): Gen[List[A]] =
     Gen(State.sequence(List.fill(n)(g.sample)))
+
