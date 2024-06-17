@@ -18,9 +18,9 @@ class GenSpec extends munit.FunSuite {
     assertEquals(rt, true)
   }
 
-  test("listOfN returns list of values using a generator") {
+  test("listOfNV1 returns list of values using a generator") {
     val n = 1000
-    val g = Gen.listOfN(n, Gen.choose(10, 20))
+    val g = Gen.listOfNV0(n, Gen.choose(10, 20))
     val (r, _) = g.sample.run(rng)
     assertEquals(r.size, n)
     r.foreach(v => assert(10 <= v && v < 20, s"v = $v"))
@@ -28,10 +28,28 @@ class GenSpec extends munit.FunSuite {
 
   test("tuple of ints") {
     val g1 =
-      Gen.listOfN(2, Gen.choose(1000, 2000)).map { case a :: b :: _ => (a, b) }
+      Gen.listOfNV0(2, Gen.choose(1000, 2000)).map { case a :: b :: _ => (a, b) }
     val ((a, b), _) = g1.sample.run(rng)
-    println((a, b))
     assert(1000 <= a && a < 2000)
     assert(1000 <= b && b < 2000)
+  }
+
+  test("flatMap") {
+    val g = Gen
+      .unit(10)
+      .flatMap(a =>
+        Gen
+          .unit(a + 20)
+          .flatMap(b => Gen.listOfNV0(5, Gen.unit(b)))
+      )
+    val (b, _) = g.sample.run(rng)
+    assertEquals(b, List.fill(5)(30))
+  }
+
+  test("listOfN creates list of random values using int generator as size source") {
+    val g = Gen.choose(1, 100).listOfN(Gen.choose(45, 55))
+    val (a, _) = g.sample.run(rng)
+    assert(a.size >= 45)
+    assert(a.size < 55)
   }
 }

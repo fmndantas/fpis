@@ -8,6 +8,13 @@ import com.github.fmndantas.eight.putNBetweenLowerAndUpperIfNIsLessThanLower
 case class Gen[A](sample: State[RNG, A]):
   def map[B](f: A => B): Gen[B] = Gen(this.sample.map(f))
 
+  def flatMap[B](f: A => Gen[B]): Gen[B] = Gen(
+    this.sample.flatMap(v => f(v).sample)
+  )
+
+  def listOfN(size: Gen[Int]): Gen[List[A]] =
+    size.flatMap(n => Gen.listOfNV0(n, this))
+
 object six extends Six
 
 object Gen:
@@ -30,6 +37,5 @@ object Gen:
     six.getNonNegativeIntLessThan(2).map(Map(0 -> false, 1 -> true))
   )
 
-  def listOfN[A](n: Int, g: Gen[A]): Gen[List[A]] =
+  def listOfNV0[A](n: Int, g: Gen[A]): Gen[List[A]] =
     Gen(State.sequence(List.fill(n)(g.sample)))
-
