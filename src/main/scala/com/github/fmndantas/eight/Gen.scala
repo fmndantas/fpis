@@ -39,3 +39,6 @@ object Gen:
 
   def listOfNV0[A](n: Int, g: Gen[A]): Gen[List[A]] =
     Gen(State.sequence(List.fill(n)(g.sample)))
+
+  def union[A](g0: Gen[A], g1: Gen[A]): Gen[A] = 
+    Gen.boolean.flatMap(Map(false -> g0, true -> g1))

@@ -52,4 +52,13 @@ class GenSpec extends munit.FunSuite {
     assert(a.size >= 45)
     assert(a.size < 55)
   }
+
+  test("union combine two generators, pulling from both with equal likelihood") {
+    val g0 = Gen.unit(1)
+    val g1 = Gen.unit(2)
+    val g2 = Gen.union(g0, g1).listOfN(Gen.unit(10))
+    val (a, _) = g2.sample.run(rng)
+    assert(a.exists(_ == 1))
+    assert(a.exists(_ == 2))
+  }
 }
