@@ -32,4 +32,41 @@ class PropSpec extends MultipleCases {
     val p = Prop.forAll(gen)(predicate)
     assertEquals(p.run(10, rng), ans)
   }
+
+  test("&& creates Prop that passes when both source Props passes") {
+    val p0 = Prop.forAll(Gen.choose(10, 15))(_ < 15)
+    // NOTE: p1 will fail
+    val p1 = Prop.forAll(Gen.choose(10, 20))(_ < 15)
+    val ok = p0 && p0
+    val noByLeft = p1 && p0
+    val noByRight = p0 && p1
+    assertEquals(ok.run(10, rng), Passed, "ok")
+    assertEquals(
+      noByLeft.run(10, stairRNG(10)),
+      Falsified("Left prop failed: 15", 5),
+      "left"
+    )
+    assertEquals(
+      noByRight.run(10, stairRNG(10)),
+      Falsified("Right prop failed: 15", 5),
+      "right"
+    )
+  }
+
+  test("|| creates Prop that passes if any Prop passes") {
+    val p0 = Prop.forAll(Gen.choose(10, 15))(_ < 15)
+    // NOTE: p1 will fail
+    val p1 = Prop.forAll(Gen.choose(10, 20))(_ < 15)
+    val p2 = Prop.forAll(Gen.choose(10, 20))(_ < 11)
+    val ok1 = p0 || p1
+    val ok2 = p1 || p0
+    val no = p1 || p2
+    assertEquals(ok1.run(10, rng), Passed, "ok1")
+    assertEquals(ok2.run(10, rng), Passed, "ok2")
+    assertEquals(
+      no.run(10, stairRNG(10)),
+      Falsified("Left failed with: 15; Right failed with: 11", 5 + 1),
+      "no"
+    )
+  }
 }
