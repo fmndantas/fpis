@@ -8,15 +8,15 @@ class SixSpec extends MultipleCases {
 
   test("map2 joins two rands") {
     val rng = SimpleRNG(42)
-    val (result1, _) = Utils.mockRand(42)(rng)
-    val (result2, _) = Utils.mockRand(42)(rng)
+    val (result1, _) = Utils.fixedRand(42)(rng)
+    val (result2, _) = Utils.fixedRand(42)(rng)
     val (joinedResult, _) =
-      sut.map2(Utils.mockRand(42), Utils.mockRand(42))(_ + _)(rng)
+      sut.map2(Utils.fixedRand(42), Utils.fixedRand(42))(_ + _)(rng)
     assertEquals(joinedResult, result1 + result2)
   }
 
   test("sequence transforms list of transitions into a single transition") {
-    val rands = List(Utils.mockRand(1), Utils.mockRand(2), Utils.mockRand(3))
+    val rands = List(Utils.fixedRand(1), Utils.fixedRand(2), Utils.fixedRand(3))
     val transition = sut.sequence(rands)
     val rng = SimpleRNG(42)
     val (resultingList, resultingRng) = transition(rng)
