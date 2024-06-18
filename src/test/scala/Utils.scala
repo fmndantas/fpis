@@ -1,8 +1,13 @@
 import com.github.fmndantas.six.RNG
 
 object Utils:
-  def mockRand[A](desiredValue: A)(rng: RNG) = (desiredValue, rng)
+  def fixedRand[A](desiredValue: A)(rng: RNG) = (desiredValue, rng)
 
-  def mockRNG(a: Int): RNG =
+  def fixedRNG(a: Int): RNG =
     new RNG:
-      def nextInt = (a, mockRNG(a))
+      def nextInt = (a, fixedRNG(a))
+
+  def stairRNG(initial: Int): RNG =
+    new RNG:
+      def nextInt = (initial, stairRNG(initial + 1))
+      

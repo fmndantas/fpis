@@ -1,8 +1,6 @@
 package com.github.fmndantas
 
 package object eight {
-  def forAll[A](g: Gen[A])(p: A => Boolean): Boolean = false
-
   def putNBetweenLowerAndUpperIfNIsLessThanLower(
       n: Int,
       lower: Int,

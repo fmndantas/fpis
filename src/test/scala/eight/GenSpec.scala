@@ -12,8 +12,8 @@ class GenSpec extends munit.FunSuite {
 
   test("boolean returns true or false") {
     val g = Gen.boolean
-    val (rf, _) = g.sample.run(Utils.mockRNG(0))
-    val (rt, _) = g.sample.run(Utils.mockRNG(1))
+    val (rf, _) = g.sample.run(Utils.fixedRNG(0))
+    val (rt, _) = g.sample.run(Utils.fixedRNG(1))
     assertEquals(rf, false)
     assertEquals(rt, true)
   }
