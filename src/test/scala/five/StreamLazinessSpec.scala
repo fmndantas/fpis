@@ -86,4 +86,13 @@ class StreamLazinessSpec extends munit.FunSuite {
     )
     s2.startsWith(s1)
   }
+
+  test("find is lazy") {
+    val s =
+      Stream.cons(
+        1,
+        Stream.cons({ assert(false, "find is not lazy"); 2 }, Stream.empty)
+      )
+    s.find(_ < 2)
+  }
 }

@@ -254,4 +254,12 @@ class StreamSpec extends munit.FunSuite with MultipleCases {
   ) { case (stream, ans) =>
     assertEquals[List[String], List[String]](stream.toList, ans)
   }
+
+  cases("find suite")(
+    (Stream(1, 2, 3), (a: Int) => a == 3, Some(3)),
+    (Stream(1, 2, 3), (a: Int) => a == 4, None),
+    (Stream(1, 2, 3), (a: Int) => a > 1, Some(2))
+  ) { case (stream, f, ans) =>
+    assertEquals(stream.find(f), ans)
+  }
 }

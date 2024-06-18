@@ -142,8 +142,13 @@ sealed trait Stream[+A] {
   def scanRight[B](z: => B)(f: (A, => B) => B): Stream[B] =
     foldRight(Stream(z)) { (a, b) =>
       lazy val evaluatedB = b
-      val Cons(h, t) = evaluatedB : @unchecked
+      val Cons(h, t) = evaluatedB: @unchecked
       Stream.cons(f(a, h()), evaluatedB)
+    }
+
+  def find(f: A => Boolean): Option[A] =
+    foldRight[Option[A]](None) { (a, b) =>
+      if f(a) then Some(a) else b
     }
 }
 
