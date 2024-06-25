@@ -15,6 +15,8 @@ case class Gen[A](sample: State[RNG, A]):
   def listOfN(size: Gen[Int]): Gen[List[A]] =
     size.flatMap(n => Gen.listOfNV0(n, this))
 
+  def unsized: SGen[A] = SGen(_ => this)
+
 object six extends Six
 
 object Gen:
@@ -29,7 +31,7 @@ object Gen:
         }
     )
 
-  def listOf[A](a: Gen[A]): Gen[List[A]] = ???
+  // def listOf[A](a: Gen[A]): Gen[List[A]] = ???
 
   def unit[A](a: => A): Gen[A] = Gen(State.unit(a))
 
@@ -40,5 +42,5 @@ object Gen:
   def listOfNV0[A](n: Int, g: Gen[A]): Gen[List[A]] =
     Gen(State.sequence(List.fill(n)(g.sample)))
 
-  def union[A](g0: Gen[A], g1: Gen[A]): Gen[A] = 
+  def union[A](g0: Gen[A], g1: Gen[A]): Gen[A] =
     Gen.boolean.flatMap(Map(false -> g0, true -> g1))
