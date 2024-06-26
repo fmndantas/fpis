@@ -31,8 +31,6 @@ object Gen:
         }
     )
 
-  // def listOf[A](a: Gen[A]): Gen[List[A]] = ???
-
   def unit[A](a: => A): Gen[A] = Gen(State.unit(a))
 
   def boolean: Gen[Boolean] = Gen(
